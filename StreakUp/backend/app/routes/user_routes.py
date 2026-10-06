@@ -122,6 +122,28 @@ def update_me():
         return error_response(str(exc), 409)
 
 
+@user_bp.route("/me/device-token", methods=["POST"])
+@jwt_required()
+def register_device_token():
+    """Store a push notification token for the authenticated user's device."""
+    user_id = int(get_jwt_identity())
+    user = db.session.get(User, user_id)
+    if user is None:
+        return error_response("Usuario no encontrado.", 404)
+
+    data = request.get_json(silent=True)
+    token = data.get("fcm_token") if isinstance(data, dict) else None
+    if not isinstance(token, str) or not token.strip() or len(token.strip()) > 512:
+        return error_response(
+            "fcm_token must be a non-empty string of at most 512 characters.",
+            400,
+        )
+
+    user.fcm_token = token.strip()
+    db.session.commit()
+    return jsonify({"message": "Device token registered."}), 200
+
+
 @user_bp.route("/me/export", methods=["GET"])
 @jwt_required()
 def export_me():

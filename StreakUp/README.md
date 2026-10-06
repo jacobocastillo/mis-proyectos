@@ -35,6 +35,47 @@ NEXT_PUBLIC_OFFLINE_MODE=true npm run dev
 
 Abre <http://localhost:3000>. En este modo no es necesario iniciar la API.
 
+## Despliegue web conectado
+
+El frontend se sirve en Vercel y la API Flask en Render. PostgreSQL puede
+alojarse en Neon. Los tres servicios se configuran por separado; el manifiesto
+[`../render.yaml`](../render.yaml) prepara la API de Render.
+
+### API y PostgreSQL
+
+1. Crea una base PostgreSQL en Neon y copia su URL de conexión, conservándola
+   como secreto.
+2. En Render, crea un **Blueprint** desde el repositorio
+   `jacobocastillo/mis-proyectos` y acepta el servicio `streakup-api` de
+   `render.yaml`.
+3. En las variables del servicio, configura `DATABASE_URL` con la URL de Neon
+   y `CORS_ALLOWED_ORIGINS` con el dominio del frontend en Vercel. Render genera
+   `SECRET_KEY` y `JWT_SECRET_KEY`. El arranque aplica las migraciones y carga
+   el catálogo.
+4. Espera a que el API responda en `/readyz` antes de conectar el frontend.
+
+### Frontend en Vercel
+
+1. Importa `jacobocastillo/mis-proyectos` en Vercel y configura **Root
+   Directory** como `StreakUp/frontend`.
+2. Deja el comando de build como `npm run build` y el output de Next.js por
+   defecto; no actives el export móvil de Capacitor.
+3. Configura estas variables para Production, Preview y Development:
+   - `NEXT_PUBLIC_OFFLINE_MODE=false`
+   - `NEXT_PUBLIC_API_URL=https://<dominio-del-api-en-render>`
+4. Despliega el frontend y añade su dominio en
+   `CORS_ALLOWED_ORIGINS` en Render.
+
+No pongas `localhost` como `NEXT_PUBLIC_API_URL` en Vercel: ese nombre se
+referiría al propio servidor de Vercel. No publiques credenciales en el
+frontend; cualquier variable `NEXT_PUBLIC_*` es visible en el navegador.
+
+Neon Free ofrece actualmente 1 GB de almacenamiento por proyecto, no requiere
+tarjeta y suspende el cómputo tras cinco minutos sin actividad. Render Free
+puede suspender la API por inactividad, y el primer acceso posterior puede
+tardar en arrancar. Consulta los límites vigentes de cada proveedor antes de
+usar estos planes con datos importantes.
+
 ## Ejecutar la app conectada
 
 Instala las dependencias una vez:

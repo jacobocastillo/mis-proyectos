@@ -14,6 +14,8 @@ export const API_ENDPOINTS = {
     delete: "/api/users/me",
     /** Export the authenticated user's portable data */
     export: "/api/users/me/export",
+    /** Register a push notification token for the authenticated device */
+    deviceToken: "/api/users/me/device-token",
   },
   telemetry: {
     errors: "/api/telemetry/errors",

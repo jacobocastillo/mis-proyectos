@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: streakup-api
+    runtime: python
+    plan: free
+    region: oregon
+    rootDir: StreakUp/backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: flask --app run.py db upgrade && flask --app run.py seed-catalog && gunicorn --bind 0.0.0.0:$PORT run:app
+    healthCheckPath: /healthz
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false

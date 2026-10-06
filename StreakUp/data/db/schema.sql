@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
     email TEXT NOT NULL UNIQUE,
+    fcm_token TEXT,
     password_hash TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'user',
     total_xp INTEGER NOT NULL DEFAULT 0,

@@ -88,6 +88,17 @@ class RegistrationTestCase(unittest.TestCase):
         )
         self.assertEqual(pomodoro_response.status_code, 200)
 
+        token_response = self.client.post(
+            "/api/users/me/device-token",
+            json={"fcm_token": "test-device-token"},
+            headers=headers,
+        )
+        self.assertEqual(token_response.status_code, 200)
+        self.assertEqual(
+            User.query.filter_by(email="daniel@correo.com").one().fcm_token,
+            "test-device-token",
+        )
+
     def test_register_rejects_duplicate_email(self) -> None:
         first = self._register()
         self.assertEqual(first.status_code, 201)

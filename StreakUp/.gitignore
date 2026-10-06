@@ -102,9 +102,13 @@ out/
 # Next.js env files
 # =========================
 .env.local
+.env.*.local
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Local TypeScript incremental build state
+*.tsbuildinfo
 
 # =========================
 # Frontend build
