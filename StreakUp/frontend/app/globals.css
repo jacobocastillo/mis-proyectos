@@ -1,0 +1,194 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+    --radius-2xl: calc(var(--radius) + 8px);
+    --radius-3xl: calc(var(--radius) + 12px);
+    --radius-4xl: calc(var(--radius) + 16px);
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+
+    /* StreakUp custom colors */
+    --color-violet: #5D5FEF;
+    --color-violet-glow: #5D5FEF66;
+    --color-dark-bg: #0A0A0A;
+    --color-dark-card: #111127;
+    --color-dark-input: #1A1A2E;
+    --color-dark-border: #2A2A3E;
+
+    /* Claymorphism Tokens */
+    --color-clay-blue: #3b82f6;
+    --color-clay-orange: #f97316;
+    --color-clay-green: #22c55e;
+    --color-clay-purple: #a855f7;
+    --color-clay-frozen: #475569;
+    --color-clay-frozen-bg: #1e293b;
+
+    /* Claymorphism Shadows for Dark Mode */
+    --shadow-clay: inset -1px -1px 3px rgba(0, 0, 0, 0.2), inset 1px 1px 3px rgba(255, 255, 255, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    --shadow-clay-pressed: inset 1px 1px 3px rgba(0, 0, 0, 0.25), inset -1px -1px 3px rgba(255, 255, 255, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.15);
+}
+
+:root {
+    --radius: 0.625rem;
+    /* OKLCH Light Mode Palette */
+    --background: oklch(0.97 0 0);
+    --foreground: oklch(0.15 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.15 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.15 0 0);
+    --primary: oklch(0.5 0.2 280);
+    --primary-foreground: oklch(1 0 0);
+    --secondary: oklch(0.96 0 0);
+    --secondary-foreground: oklch(0.15 0 0);
+    --muted: oklch(0.96 0 0);
+    --muted-foreground: oklch(0.55 0 0);
+    --accent: oklch(0.96 0 0);
+    --accent-foreground: oklch(0.15 0 0);
+    --destructive: oklch(0.6 0.2 25);
+    --border: oklch(0.92 0 0);
+    --input: oklch(0.92 0 0);
+    --ring: oklch(0.5 0.2 280);
+    --chart-1: oklch(0.5 0.2 280);
+    --chart-2: oklch(0.55 0.2 290);
+    --chart-3: oklch(0.6 0.2 300);
+    --chart-4: oklch(0.65 0.2 310);
+    --chart-5: oklch(0.7 0.2 320);
+    --sidebar: oklch(1 0 0);
+    --sidebar-foreground: oklch(0.15 0 0);
+    --sidebar-primary: oklch(0.5 0.2 280);
+    --sidebar-primary-foreground: oklch(1 0 0);
+    --sidebar-accent: oklch(0.96 0 0);
+    --sidebar-accent-foreground: oklch(0.15 0 0);
+    --sidebar-border: oklch(0.92 0 0);
+    --sidebar-ring: oklch(0.5 0.2 280);
+}
+
+.dark {
+    /* OKLCH Dark Mode Palette */
+    --background: oklch(0.18 0.01 245);
+    --foreground: oklch(0.95 0.01 245);
+    --card: oklch(0.2 0.03 245);
+    --card-foreground: oklch(0.95 0.01 245);
+    --popover: oklch(0.2 0.03 245);
+    --popover-foreground: oklch(0.95 0.01 245);
+    --primary: oklch(0.55 0.2 280);
+    --primary-foreground: oklch(1 0 0);
+    --secondary: oklch(0.23 0.03 245);
+    --secondary-foreground: oklch(0.95 0.01 245);
+    --muted: oklch(0.23 0.03 245);
+    --muted-foreground: oklch(0.65 0.05 245);
+    --accent: oklch(0.23 0.03 245);
+    --accent-foreground: oklch(0.95 0.01 245);
+    --destructive: oklch(0.6 0.2 25);
+    --border: oklch(0.28 0.04 245);
+    --input: oklch(0.28 0.04 245);
+    --ring: oklch(0.55 0.2 280);
+    --chart-1: oklch(0.55 0.2 280);
+    --chart-2: oklch(0.6 0.2 290);
+    --chart-3: oklch(0.65 0.2 300);
+    --chart-4: oklch(0.7 0.2 310);
+    --chart-5: oklch(0.75 0.2 320);
+    --sidebar: oklch(0.2 0.03 245);
+    --sidebar-foreground: oklch(0.95 0.01 245);
+    --sidebar-primary: oklch(0.55 0.2 280);
+    --sidebar-primary-foreground: oklch(1 0 0);
+    --sidebar-accent: oklch(0.23 0.03 245);
+    --sidebar-accent-foreground: oklch(0.95 0.01 245);
+    --sidebar-border: oklch(0.28 0.04 245);
+    --sidebar-ring: oklch(0.55 0.2 280);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+}
+
+:root {
+  --bg1:#1d0b86;
+  --bg2:#4f22d9;
+  --bg3:#8b3fff;
+  --purple:#6b5cff;
+  --purple2:#9d55ff;
+  --yellow:#ffe536;
+  --orange:#ff8b18;
+  --orange2:#ff4d14;
+  --text:#ffffff;
+  --muted:rgba(255,255,255,.74);
+  --card:rgba(255,255,255,.14);
+  --card2:rgba(255,255,255,.20);
+  --line:rgba(255,255,255,.20);
+  --shadow:0 22px 55px rgba(18,5,72,.32);
+}
+.theme-ice {--bg1:#05245e;--bg2:#1276ff;--bg3:#49dcff;--purple:#24cfff;--purple2:#97f3ff;--yellow:#d8fbff;--orange:#1eb9ff;--orange2:#0878d8;}
+.theme-night {--bg1:#070715;--bg2:#17113a;--bg3:#352091;--purple:#7367ff;--purple2:#9b8cff;--yellow:#cfc7ff;--orange:#776bff;--orange2:#4d3eff;}
+.theme-candy {--bg1:#3b0b7a;--bg2:#bc27ff;--bg3:#ff4aa8;--purple:#ff66bd;--purple2:#ff9ed7;--yellow:#ffe44d;--orange:#ff9a20;--orange2:#ff3f73;}
+
+@keyframes enter {from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+@keyframes float {50%{transform:translateY(-8px)}}
+@keyframes mascotFloat {0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-12px) rotate(1deg)}}
+@keyframes mascotGlow {0%,100%{opacity:.65;transform:scale(.95)}50%{opacity:1;transform:scale(1.12)}}
+@keyframes twinkle {0%,100%{opacity:.45;transform:scale(.8)}50%{opacity:1;transform:scale(1.25)}}
+@keyframes fireFlicker {0%,100%{filter:drop-shadow(0 0 10px rgba(255,120,20,.8))}50%{filter:drop-shadow(0 0 18px rgba(255,220,40,1))}}
+@keyframes iceMelt {0%,100%{opacity:1}65%{opacity:.82}}
+@keyframes candleBurn {0%,100%{filter:drop-shadow(0 0 8px rgba(255,210,80,.8))}50%{filter:drop-shadow(0 0 16px rgba(255,150,30,1))}}
+@keyframes clockFlip {0%,100%{filter:drop-shadow(0 0 8px rgba(217,119,6,.8))}50%{filter:drop-shadow(0 0 16px rgba(217,119,6,1))}}
+@keyframes grow {from{height:0}}
+@keyframes bigIconPulse {0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+@keyframes hourglassFloat {0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes sandTop {0%{height:70%}100%{height:8%}}
+@keyframes sandBottom {0%{height:18%}100%{height:72%}}
+
+/* Accessibility: suppress default outline only when focus-visible is used instead */
+:focus:not(:focus-visible) { outline: none; }
+:focus-visible { outline: 2px solid rgba(255,255,255,0.8); outline-offset: 2px; }
+
+/* Screen reader only utility */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0; }
+.focus\:not-sr-only:focus { position: static; width: auto; height: auto; padding: revert; margin: revert; overflow: visible; clip: auto; white-space: normal; }
+
+/* Safe-area support for main content area (Android/iOS notch) */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-area-pb { padding-bottom: env(safe-area-inset-bottom); }
+}
+@keyframes sandStream {0%,100%{opacity:.45;transform:translateX(-50%) scaleY(.8)}50%{opacity:1;transform:translateX(-50%) scaleY(1.15)}}

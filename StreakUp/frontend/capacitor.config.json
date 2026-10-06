@@ -1,0 +1,8 @@
+{
+  "appId": "com.streakup.app",
+  "appName": "StreakUP",
+  "webDir": "out",
+  "android": {
+    "path": "../android"
+  }
+}

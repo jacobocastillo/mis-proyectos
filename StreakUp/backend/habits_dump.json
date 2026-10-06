@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "nombre": "Beber 2L de agua"
+  },
+  {
+    "id": 2,
+    "nombre": "Ejercicio 30 min"
+  },
+  {
+    "id": 3,
+    "nombre": "Comida saludable"
+  },
+  {
+    "id": 4,
+    "nombre": "Meditar 5-10 min"
+  },
+  {
+    "id": 5,
+    "nombre": "Día sin quejas"
+  },
+  {
+    "id": 6,
+    "nombre": "Trabajo profundo 60 min"
+  },
+  {
+    "id": 7,
+    "nombre": "Completar tarea clave"
+  },
+  {
+    "id": 8,
+    "nombre": "Empezar antes de las 9am"
+  },
+  {
+    "id": 9,
+    "nombre": "Leer 20 min"
+  },
+  {
+    "id": 10,
+    "nombre": "Practicar idioma"
+  },
+  {
+    "id": 11,
+    "nombre": "Tender la cama"
+  },
+  {
+    "id": 12,
+    "nombre": "dormir"
+  }
+]
