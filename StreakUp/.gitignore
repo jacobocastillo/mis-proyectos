@@ -81,9 +81,10 @@ dist/
 *.egg-info/
 
 # =========================
-# Codex output (IA artifacts)
+# Local AI prompts and generated reports
 # =========================
-codex/output/
+/.codex
+/codex/
 
 # =========================
 # Node.js
@@ -126,6 +127,9 @@ pnpm-debug.log*
 android/build/
 android/app/build/
 ios/DerivedData/
+
+# Captured test output
+/backend/pytest_output.txt
 
 # .gitignore
 .antigravity/skills/

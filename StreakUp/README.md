@@ -1,433 +1,108 @@
-# StreakUP
+# StreakUp
 
-StreakUP es una plataforma para **gestión de hábitos, rachas y progreso personal** con soporte **offline-first**, sincronización con backend y sistema de puntuación gamificado.
+Aplicación para crear hábitos, registrar progreso y mantener rachas. Incluye
+interfaz web y móvil, una API y soporte de almacenamiento offline.
 
-El proyecto está diseñado con una arquitectura moderna separando **Frontend (app)** y **Backend (API)**.
+## Estructura
 
-# Arquitectura del sistema
+```text
+StreakUp/
+├── android/       Aplicación nativa Android (Capacitor)
+├── backend/       API Flask, modelos, migraciones y pruebas
+├── data/db/       Esquema SQLite y datos semilla versionados
+├── docs/          Guías operativas y documentación
+├── frontend/      Interfaz Next.js y pruebas
+├── Makefile       Comandos de desarrollo y validación
+└── README.md
+```
 
-StreakUP utiliza una arquitectura **cliente-servidor con soporte offline**.
+`data/app.db`, los archivos de entorno, las dependencias y los builds se crean o
+configuran localmente; no se versionan.
 
-App móvil (Next.js + Capacitor)
-├─ SQLite local (offline)
-├─ UI / estado del usuario
-└─ Motor de sincronización
-↓
-API Backend (Flask)
-├─ Autenticación
-├─ Lógica de negocio
-└─ Base de datos (SQLite → PostgreSQL)
+## Requisitos
 
-Esto permite:
+- Python 3.12 (consulta `.python-version`)
+- Node.js y npm
+- `make` y `sqlite3`
 
-- uso **offline**
-- sincronización eficiente
-- backend escalable
-- separación clara de responsabilidades
+## Probar rápidamente en modo offline
 
-# Stack Tecnológico
+```bash
+cd frontend
+npm ci
+NEXT_PUBLIC_OFFLINE_MODE=true npm run dev
+```
 
-## Backend (API)
+Abre <http://localhost:3000>. En este modo no es necesario iniciar la API.
 
-Backend desarrollado en **Python con Flask**.
+## Ejecutar la app conectada
 
-| Tecnología | Uso |
-|---|---|
-| Python 3.11 | Lógica del sistema |
-| Flask | API REST |
-| SQLAlchemy | ORM para modelos |
-| Flask-JWT-Extended | Autenticación JWT |
-| SQLite | Base de datos para MVP |
-| Flask-Migrate | Migraciones de base de datos |
+Instala las dependencias una vez:
 
-### Futuro
+```bash
+python3.12 -m venv backend/.venv
+backend/.venv/bin/python -m pip install -r backend/requirements.txt
+cd frontend && npm ci
+cd ..
+```
 
-- PostgreSQL
-- módulo de IA para recomendaciones
-- análisis de hábitos
+En la primera ejecucion, crea la base local y el catalogo:
 
-## Frontend (App)
-
-Aplicación móvil basada en **Next.js + Capacitor**.
-
-| Tecnología | Uso |
-|---|---|
-| Node.js | entorno de desarrollo |
-| Next.js | interfaz principal |
-| Capacitor | empaquetado móvil |
-| SQLite local | almacenamiento offline |
-| Sync Engine | sincronización con backend |
-
-# Estructura del proyecto
-
-streakUP
-
-backend/ → API Flask
-db/ → estructura SQL de la base de datos
-data/ → base de datos local y backups
-Codex/ → artefactos generados por IA
-Makefile → comandos de desarrollo
-README.md
-
-# Backend
-
-backend/
-│
-├── app
-│ ├── middleware
-│ ├── models
-│ ├── routes
-│ ├── schemas
-│ ├── services
-│ ├── utils
-│ ├── config.py
-│ └── extensions.py
-│
-├── migrations
-├── tests
-├── run.py
-└── requirements.txt
-
-# Arquitectura del backend
-
-El backend sigue una arquitectura **Service Layer**.
-
-Flujo de una petición:
-
-Request
-↓
-Routes (API endpoints)
-↓
-Services (lógica de negocio)
-↓
-Models (acceso a base de datos)
-↓
-Database
-
-# Componentes del backend
-
-## Models
-
-Representan las **tablas de la base de datos**.
-
-Ejemplos:
-
-- `user.py` → usuarios
-- `habit.py` → hábitos
-- `user_habit.py` → hábitos asignados a usuarios
-- `checkin.py` → registros de hábitos completados
-- `xp_log.py` → historial de puntos
-
-## Routes
-
-Definen los **endpoints de la API REST**.
-
-Ejemplos:
-
-- `auth_routes.py`
-- `user_routes.py`
-- `habit_routes.py`
-- `checkin_routes.py`
-- `sync_routes.py`
-
-## Services
-
-Contienen **la lógica de negocio del sistema**.
-
-Ejemplos:
-
-- `auth_service.py`
-- `difficulty_service.py`
-- `streak_service.py`
-- `xp_service.py`
-- `sync_service.py`
-
-## Middleware
-
-Controla permisos y reglas antes de ejecutar rutas.
-
-Ejemplo:
-
-- `permissions.py`
-
-## Schemas
-
-Validación de datos entrantes.
-
-Ejemplo:
-
-- `validations.py`
-
-## Utils
-
-Funciones auxiliares.
-
-Ejemplos:
-
-- manejo de errores
-- helpers reutilizables
-
-# Base de datos
-
-La base de datos se define en:
-
-db/
-├── schema.sql
-└── seed.sql
-
-- `schema.sql` → estructura de tablas
-- `seed.sql` → datos iniciales para desarrollo
-
-La base generada localmente se guarda en:
-
-
-data/app.db
-
-# Comandos de desarrollo
-
-El proyecto incluye un **Makefile** para simplificar tareas.
-
-### Crear / reiniciar base de datos
-
+```bash
 make db-init
+```
 
-### Crear / reiniciar base de datos con usuarios demo locales
+> `make db-init` reinicia `data/app.db`. No lo ejecutes si ya tienes datos que
+> quieras conservar.
 
-make db-init-demo
+Abre dos terminales desde la raiz de `StreakUp`.
 
-### Abrir consola SQLite
+Terminal 1, inicia la API:
 
-make db-open
+```bash
+FLASK_ENV=development FLASK_DEBUG=true make run_backend
+```
 
-### Limpiar base de datos local
+Terminal 2, inicia la interfaz conectada al backend local:
 
-make db-clean
+```bash
+cd frontend
+NEXT_DEV_API_PROXY_URL=http://localhost:5000 \
+NEXT_PUBLIC_OFFLINE_MODE=false \
+npm run dev
+```
 
-### Crear backup
+Abre <http://localhost:3000>. El proxy envia las peticiones `/api` a Flask en
+el puerto `5000`.
 
-make db-backup
+## Comandos útiles
 
-# Hosted deployment
+Ejecuta desde la raiz del proyecto:
 
-Para un despliegue en Render con PostgreSQL administrado:
+| Comando | Proposito |
+|---|---|
+| `make run_backend` | Iniciar la API |
+| `make run_frontend` | Iniciar la interfaz |
+| `make run_local` | Iniciar la interfaz en modo offline |
+| `make test_backend` | Ejecutar las pruebas de Flask |
+| `make test_frontend_unit` | Ejecutar las pruebas unitarias web |
+| `make build_frontend` | Crear el build web |
+| `make update-apk-auto` | Sincronizar Capacitor y crear el APK debug |
 
-1. Instala dependencias backend, incluyendo el driver de PostgreSQL:
+Android Studio y el SDK de Android solo son necesarios para compilar o ejecutar
+la aplicación nativa. El proyecto móvil se configura desde `frontend/` con
+Capacitor; `android/` contiene el wrapper nativo.
 
-   `cd backend && ./.venv/bin/pip install -r requirements.txt`
+## Configuración
 
-2. Configura variables de entorno en Render:
+Usa los archivos de ejemplo como referencia y crea archivos `.env` locales
+cuando hagan falta:
 
-   - `SECRET_KEY`
-   - `JWT_SECRET_KEY`
-   - `DATABASE_URL`
-   - `PORT`
-   - `CORS_ALLOWED_ORIGINS=https://tu-frontend.example.com`
-   - `OPENAI_API_KEY` solo si quieres validacion por foto
+- `backend/.env.example`
+- `frontend/.env.example`
 
-3. Ejecuta migraciones sobre la base administrada:
+No subas claves, tokens, bases de datos ni archivos `.env` al repositorio.
+`OPENAI_API_KEY` es opcional y solo se requiere para la validación de hábitos
+con fotos.
 
-   `cd backend && ./.venv/bin/flask --app run.py db upgrade`
-
-4. Si el deploy arranca limpio, ejecuta bootstrap idempotente del catalogo:
-
-   `cd backend && ./.venv/bin/flask --app run.py seed-catalog`
-
-5. Inicia el backend con Gunicorn usando el puerto del entorno:
-
-   `cd backend && PORT=8000 ./.venv/bin/gunicorn --bind 0.0.0.0:$PORT run:app`
-
-Ruta para conservar `data/app.db` antes del primer cutover a Render/PostgreSQL:
-
-1. Audita la SQLite legada:
-
-   `cd backend && ./.venv/bin/flask --app run.py audit-legacy-sqlite --path ../data/app.db`
-
-2. Provisiona una base Postgres vacia y ejecuta solo Alembic:
-
-   `cd backend && ./.venv/bin/flask --app run.py db upgrade`
-
-3. Importa la SQLite legada sobre ese target vacio:
-
-   `cd backend && ./.venv/bin/flask --app run.py migrate-sqlite-to-postgres --path ../data/app.db`
-
-4. Verifica `GET /healthz`, `GET /readyz`, auth, catalogo, check-ins y stats antes de repoint del frontend.
-
-Notas operativas:
-
-- El backend acepta `postgres://...` y `postgresql://...` y los normaliza a `postgresql+psycopg://...` para SQLAlchemy.
-- `schema.sql` queda como bootstrap local SQLite; el despliegue hosteado debe usar Alembic.
-- `seed.sql` sigue siendo solo una conveniencia local SQLite; en produccion la ruta recomendada es `flask seed-catalog`.
-- El importador legado recalcula `users.total_xp`, `level` y `xp_in_level` desde `xp_logs`.
-
-# Validacion operacional y privacidad
-
-Documentacion de soporte para RNF-02, RNF-08, RNF-09 y RNF-12:
-
-- `docs/privacy.md`
-- `docs/data-retention.md`
-- `docs/availability-runbook.md`
-- `docs/incident-runbook.md`
-- `docs/release-checklist.md`
-
-Endpoints operativos y de privacidad:
-
-- `GET /healthz`
-- `GET /readyz`
-- `POST /api/telemetry/errors`
-- `GET /api/users/me/export`
-- `DELETE /api/users/me`
-- El importador exige que la base target este vacia antes de cargar datos.
-
-Endpoints operativos mínimos:
-
-- `GET /healthz`
-- `GET /readyz`
-
-`/readyz` solo responde `200` cuando la base está accesible y el catálogo requerido ya fue cargado.
-
-# Frontend hosteado y APK
-
-Build web contra backend hosteado:
-
-`cd frontend && NEXT_PUBLIC_API_URL=https://api.example.com NEXT_PUBLIC_OFFLINE_MODE=false npm run build`
-
-Build móvil exportado para Capacitor:
-
-`cd frontend && NEXT_PUBLIC_API_URL=https://api.example.com NEXT_PUBLIC_OFFLINE_MODE=false npm run build:mobile`
-
-Sincronizar Android con el export:
-
-`cd frontend && npx cap sync android`
-
-Generar APK debug:
-
-`cd android && GRADLE_USER_HOME=/tmp/streakup-gradle ./gradlew assembleDebug`
-
-Variables mínimas para un deploy conectado:
-
-- Backend:
-  - `SECRET_KEY`
-  - `JWT_SECRET_KEY`
-  - `DATABASE_URL`
-  - `PORT`
-  - `CORS_ALLOWED_ORIGINS`
-  - `OPENAI_API_KEY` solo si quieres validación por foto
-- Frontend:
-  - `NEXT_PUBLIC_API_URL`
-  - `NEXT_PUBLIC_OFFLINE_MODE=false`
-
-En modo conectado, el frontend ya no inventa respuestas locales cuando el backend falla. El modo offline solo se activa de forma explícita con `NEXT_PUBLIC_OFFLINE_MODE=true`.
-
-# Sistema de módulos
-
-El backend se organiza en módulos funcionales.
-
-## Autenticación
-
-Responsable de la identidad del usuario.
-
-Funciones:
-
-- registro
-- login
-- roles (`user`, `creator`, `admin`)
-- gestión de perfil
-
-## Hábitos
-
-Gestión de hábitos del usuario.
-
-Funciones:
-
-- crear hábitos
-- editar hábitos
-- definir frecuencia
-- pausar hábitos
-
-## Retos
-
-Sistema de desafíos basados en hábitos.
-
-Funciones:
-
-- plantillas de hábitos
-- duración de retos
-- reglas de participación
-
-## Grupos
-
-Sistema social.
-
-Funciones:
-
-- gestión de miembros
-- visibilidad
-- rachas grupales
-
-## Rachas
-
-Cálculo de consistencia.
-
-Funciones:
-
-- rachas individuales
-- rachas grupales
-- racha máxima
-- reglas de conteo
-
-## Puntuación
-
-Sistema de progreso gamificado.
-
-Funciones:
-
-- puntos por hábitos
-- puntos por rachas
-- historial de puntos
-- bonus especiales
-
-## Ajustes
-
-Configuración personal del usuario.
-
-Funciones:
-
-- perfil
-- zona horaria
-- privacidad
-- preferencias
-
-## Ayuda
-
-Sistema de soporte.
-
-Funciones:
-
-- guías
-- FAQs
-- contacto
-
-## Administración
-
-Panel de control del sistema.
-
-Funciones:
-
-- gestión de usuarios
-- roles
-- moderación
-- métricas
-
-# Roadmap
-
-Futuras mejoras del sistema:
-
-- migración a PostgreSQL
-- módulo de IA para recomendaciones
-- sistema de notificaciones
-- analytics de hábitos
-- ranking de usuarios
-
-# Licencia
-
-Proyecto en desarrollo.
+Para despliegue, privacidad y operacion, consulta [`docs/`](./docs/).
