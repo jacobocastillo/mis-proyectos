@@ -3,6 +3,7 @@ import os
 import tempfile
 import unittest
 from datetime import date
+from io import BytesIO
 from urllib.error import HTTPError
 from unittest.mock import MagicMock, patch
 
@@ -188,6 +189,38 @@ class OperationalReadinessTestCase(unittest.TestCase):
                 analyze_habit_image("Meditar", "aGVsbG8=", "image/jpeg")
 
         self.assertEqual(raised.exception.code, VALIDATION_QUOTA_EXCEEDED_CODE)
+
+    def test_gemini_provider_error_logs_safe_diagnostic_without_api_key(self) -> None:
+        api_key = "test-gemini-key"
+        self.app.config["GEMINI_API_KEY"] = api_key
+        error = HTTPError(
+            "https://generativelanguage.googleapis.com/",
+            404,
+            "not found",
+            {},
+            BytesIO(
+                json.dumps(
+                    {
+                        "error": {
+                            "message": f"Model unavailable; request key was {api_key}",
+                        }
+                    }
+                ).encode("utf-8")
+            ),
+        )
+
+        with (
+            patch("app.services.openai_service.urlopen", side_effect=error),
+            patch("app.services.openai_service.current_app.logger.warning") as warning,
+        ):
+            with self.assertRaises(ValidationUnavailableError):
+                analyze_habit_image("Meditar", "aGVsbG8=", "image/jpeg")
+
+        warning.assert_called_once_with(
+            "Gemini image validation returned HTTP %s: %s",
+            404,
+            "Model unavailable; request key was [redacted]",
+        )
 
     def test_readyz_reports_validation_as_configured_but_unverified_when_key_exists(self) -> None:
         self._seed_catalog()

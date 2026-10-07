@@ -225,6 +225,14 @@ def _request_gemini_image_analysis(
         with urlopen(request, timeout=20.0) as response:
             response_data = json.loads(response.read())
     except HTTPError as exc:
+        try:
+            error_response = json.loads(exc.read().decode("utf-8"))
+            provider_message = str(
+                error_response.get("error", {}).get("message", "")
+            ).replace(api_key, "[redacted]")[:300]
+        except (AttributeError, UnicodeDecodeError, json.JSONDecodeError):
+            provider_message = ""
+
         if exc.code in {400, 401, 403}:
             code = VALIDATION_AUTH_ERROR_CODE
             message = "La llave de Gemini es inválida o no tiene acceso al modelo."
@@ -235,8 +243,9 @@ def _request_gemini_image_analysis(
             code = VALIDATION_PROVIDER_UNAVAILABLE_CODE
             message = "La validación de fotos no está disponible temporalmente."
         current_app.logger.warning(
-            "Gemini image validation returned HTTP %s.",
+            "Gemini image validation returned HTTP %s: %s",
             exc.code,
+            provider_message or "no provider detail",
         )
         raise ValidationUnavailableError(message, code) from exc
     except (URLError, TimeoutError, OSError) as exc:
