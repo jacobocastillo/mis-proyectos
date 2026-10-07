@@ -315,7 +315,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="p-[24px] rounded-[24px] bg-white/10 border border-white/20 text-center space-y-4">
+        <div className="p-[24px] rounded-[24px] bg-[var(--bg2)] border border-white/20 text-center space-y-4">
           <div className="space-y-2">
             <h2 className="text-[18px] font-bold text-white">Perfil no disponible</h2>
             <p className="text-[14px] text-white/74">{error}</p>
@@ -341,7 +341,7 @@ export default function ProfilePage() {
         </div>
         <button
           onClick={startEditingProfile}
-          className="w-[48px] h-[48px] rounded-full bg-white/18 text-white grid place-items-center cursor-pointer transition-transform active:scale-95 hover:bg-white/25"
+          className="w-[48px] h-[48px] rounded-full bg-[var(--bg3)] text-white grid place-items-center cursor-pointer transition-transform active:scale-95 hover:brightness-110"
           aria-label="Editar perfil"
         >
           <Settings className="size-6 text-white" />
@@ -349,8 +349,8 @@ export default function ProfilePage() {
       </div>
 
       {/* User Card */}
-      <div className="p-[20px] rounded-[24px] bg-white/13 border border-white/20 flex items-center gap-[16px]">
-          <div className="w-[64px] h-[64px] rounded-[20px] bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-2xl shadow-inner border border-white/20 shrink-0">
+      <div className="p-[20px] rounded-[24px] bg-[var(--bg2)] border border-white/20 flex items-center gap-[16px]">
+          <div className="w-[64px] h-[64px] rounded-[20px] bg-[var(--orange)] flex items-center justify-center text-2xl border border-white/20 shrink-0">
             <Rocket className="size-8 text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
           </div>
           <div className="flex-1 min-w-0">
@@ -364,7 +364,7 @@ export default function ProfilePage() {
                     value={editUsername}
                     onChange={(event) => setEditUsername(event.target.value)}
                     disabled={isSavingProfile}
-                    className="h-[44px] w-full rounded-[14px] border border-white/15 bg-white/10 px-[12px] text-[15px] font-bold text-white outline-none transition-colors placeholder:text-white/35 focus:border-[var(--purple2)] disabled:opacity-60"
+                    className="h-[44px] w-full rounded-[14px] border border-white/20 bg-[var(--bg1)] px-[12px] text-[15px] font-bold text-white outline-none transition-colors placeholder:text-white/35 focus:border-[var(--purple2)] disabled:opacity-60"
                     maxLength={80}
                   />
                 </div>
@@ -391,7 +391,7 @@ export default function ProfilePage() {
                     type="button"
                     onClick={cancelEditingProfile}
                     disabled={isSavingProfile}
-                    className="inline-flex h-[40px] items-center justify-center gap-[8px] rounded-[14px] bg-white/10 px-[14px] text-[13px] font-bold text-white transition-transform active:scale-95 disabled:opacity-60"
+                    className="inline-flex h-[40px] items-center justify-center gap-[8px] rounded-[14px] bg-[var(--bg3)] px-[14px] text-[13px] font-bold text-white transition-transform active:scale-95 disabled:opacity-60"
                   >
                     <X className="size-4" />
                     Cancelar
@@ -413,7 +413,7 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={startEditingProfile}
-                    className="size-[36px] rounded-[12px] bg-white/10 text-white/80 grid place-items-center transition-colors hover:bg-white/18 shrink-0"
+                    className="size-[36px] rounded-[12px] bg-[var(--bg3)] text-white/80 grid place-items-center transition-colors hover:brightness-110 shrink-0"
                     aria-label="Editar perfil"
                   >
                     <Edit3 className="size-4" />
@@ -428,9 +428,9 @@ export default function ProfilePage() {
                     <span>Experiencia</span>
                     <span>{xpInfo.xp_in_level} / {xpInfo.xp_for_next_level} XP</span>
                   </div>
-                  <div className="h-[8px] rounded-full bg-white/10 overflow-hidden shadow-inner border border-white/5">
+                  <div className="h-[8px] rounded-full bg-[var(--bg1)] overflow-hidden border border-white/10">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-[var(--purple)] to-[var(--purple2)] transition-all duration-500 shadow-[0_0_12px_rgba(157,85,255,0.6)]"
+                      className="h-full rounded-full bg-[var(--purple2)] transition-all duration-500"
                       style={{ width: `${xpInfo.progress_pct}%` }}
                     />
                   </div>
@@ -442,22 +442,22 @@ export default function ProfilePage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-[14px]">
-        <div className="p-[16px] rounded-[20px] bg-white/13 border border-white/20 text-center space-y-1">
+        <div className="p-[16px] rounded-[20px] bg-[var(--bg2)] border border-white/20 text-center space-y-1">
           <Target className="size-5 text-[var(--purple2)] drop-shadow-[0_0_8px_rgba(157,85,255,0.5)] mx-auto" />
           <p className="text-[24px] font-bold">{stats.habits_count}</p>
           <p className="text-[12px] text-white/74">Hábitos creados</p>
         </div>
-        <div className="p-[16px] rounded-[20px] bg-white/13 border border-white/20 text-center space-y-1">
+        <div className="p-[16px] rounded-[20px] bg-[var(--bg2)] border border-white/20 text-center space-y-1">
           <Star className="size-5 text-[var(--yellow)] drop-shadow-[0_0_8px_rgba(255,229,54,0.5)] mx-auto" />
           <p className="text-[24px] font-bold">{records.active_days}</p>
           <p className="text-[12px] text-white/74">Días activos</p>
         </div>
-        <div className="p-[16px] rounded-[20px] bg-white/13 border border-white/20 text-center space-y-1">
+        <div className="p-[16px] rounded-[20px] bg-[var(--bg2)] border border-white/20 text-center space-y-1">
           <Flame className="size-5 text-orange-400 drop-shadow-[0_0_8px_rgba(255,150,0,0.5)] mx-auto" />
           <p className="text-[24px] font-bold">{records.longest_streak}</p>
           <p className="text-[12px] text-white/74">Racha más larga</p>
         </div>
-        <div className="p-[16px] rounded-[20px] bg-white/13 border border-white/20 text-center space-y-1">
+        <div className="p-[16px] rounded-[20px] bg-[var(--bg2)] border border-white/20 text-center space-y-1">
           <Trophy className="size-5 text-[#36d98f] drop-shadow-[0_0_8px_rgba(54,217,143,0.5)] mx-auto" />
           <p className="text-[24px] font-bold">{unlockedCount}/{achievements.length}</p>
           <p className="text-[12px] text-white/74">Total logros</p>
@@ -467,7 +467,7 @@ export default function ProfilePage() {
       <button
         type="button"
         onClick={() => router.push("/social")}
-        className="w-full rounded-[24px] bg-white/13 border border-white/20 p-[20px] flex items-center justify-between text-left transition-colors hover:bg-white/18"
+        className="w-full rounded-[24px] bg-[var(--bg2)] border border-white/20 p-[20px] flex items-center justify-between text-left transition-colors hover:brightness-110"
       >
         <div className="flex items-center gap-[14px]">
           <div className="w-[44px] h-[44px] rounded-[14px] bg-[#36d98f]/20 text-[#36d98f] grid place-items-center">
@@ -482,7 +482,7 @@ export default function ProfilePage() {
       </button>
 
       {/* Logros */}
-      <div className="p-[20px] rounded-[24px] bg-white/13 border border-white/20 space-y-[16px]">
+      <div className="p-[20px] rounded-[24px] bg-[var(--bg2)] border border-white/20 space-y-[16px]">
         <div className="flex items-center justify-between">
           <h3 className="text-[18px] font-bold">Logros</h3>
           <span className="text-[13px] text-white/74 font-bold">{unlockedCount} de {achievements.length}</span>
@@ -502,12 +502,11 @@ export default function ProfilePage() {
                   className={cn(
                     "flex flex-col items-center gap-[6px] p-[12px] rounded-[16px] transition-all relative border",
                     ach.earned
-                      ? "bg-gradient-to-br from-[var(--purple)] to-[var(--purple2)] border-[var(--purple2)] shadow-[0_0_12px_rgba(157,85,255,0.4)]"
-                      : "bg-white/5 border-white/5 opacity-50"
+                      ? "bg-[var(--purple)] border-[var(--purple2)]"
+                      : "bg-[var(--bg1)] border-white/10 opacity-50"
                   )}
                   title={ach.description ?? ach.name}
                 >
-                  <span className="text-[24px] leading-none drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">{ach.emoji}</span>
                   <IconComp className="size-4" />
                   <span className="text-[10px] font-bold text-center leading-tight">
                     {ach.name}
@@ -527,7 +526,7 @@ export default function ProfilePage() {
       {/* Récords */}
       <div className="space-y-[12px]">
         <h3 className="text-[18px] font-bold px-1">Récords Históricos</h3>
-        <div className="p-0 overflow-hidden rounded-[24px] bg-white/13 border border-white/20 divide-y divide-white/10">
+        <div className="p-0 overflow-hidden rounded-[24px] bg-[var(--bg2)] border border-white/20 divide-y divide-white/10">
           <div className="flex items-center gap-[14px] p-[20px]">
             <div className="w-[40px] h-[40px] rounded-[12px] bg-orange-500/20 text-orange-400 grid place-items-center">
               <Flame className="size-5 drop-shadow-[0_0_8px_rgba(255,150,0,0.5)]" />
@@ -577,8 +576,8 @@ export default function ProfilePage() {
       </div>
 
       {/* XP Total */}
-      <div className="p-[20px] rounded-[24px] bg-white/13 border border-white/20 flex items-center gap-[16px]">
-        <div className="w-[56px] h-[56px] rounded-[16px] bg-gradient-to-br from-[var(--yellow)] to-orange-500 flex items-center justify-center border border-white/20">
+      <div className="p-[20px] rounded-[24px] bg-[var(--bg2)] border border-white/20 flex items-center gap-[16px]">
+        <div className="w-[56px] h-[56px] rounded-[16px] bg-[var(--yellow)] flex items-center justify-center border border-white/20">
           <Sparkles className="size-6 text-orange-950" />
         </div>
         <div className="flex-1">
@@ -589,8 +588,8 @@ export default function ProfilePage() {
       </div>
 
       {/* Settings */}
-      <div className="p-0 overflow-hidden rounded-[24px] bg-white/13 border border-white/20 divide-y divide-white/10">
-        <div className="p-[20px] bg-white/5 space-y-[16px]">
+      <div className="p-0 overflow-hidden rounded-[24px] bg-[var(--bg2)] border border-white/20 divide-y divide-white/10">
+        <div className="p-[20px] bg-[var(--bg3)] space-y-[16px]">
           <div className="flex items-center justify-between gap-[16px]">
             <div className="flex items-center gap-[12px] min-w-0">
               <Bell className="size-5 text-white/74 shrink-0" />
@@ -610,7 +609,7 @@ export default function ProfilePage() {
                 "w-[48px] h-[28px] rounded-full flex items-center p-[3px] transition-colors disabled:opacity-50",
                 reminderPreferences.enabled && nativeRemindersAvailable
                   ? "bg-[var(--purple)]"
-                  : "bg-white/14",
+                  : "bg-[var(--bg1)]",
               )}
             >
               <span
@@ -634,7 +633,7 @@ export default function ProfilePage() {
                 value={reminderPreferences.time}
                 disabled={!nativeRemindersAvailable || isSavingReminders}
                 onChange={(event) => updateReminderPreferences({ time: event.target.value })}
-                className="h-[44px] w-full rounded-[14px] border border-white/15 bg-white/10 px-[12px] text-[15px] font-bold text-white outline-none transition-colors focus:border-[var(--purple2)] disabled:opacity-50"
+                className="h-[44px] w-full rounded-[14px] border border-white/20 bg-[var(--bg1)] px-[12px] text-[15px] font-bold text-white outline-none transition-colors focus:border-[var(--purple2)] disabled:opacity-50"
               />
             </label>
 
@@ -655,7 +654,7 @@ export default function ProfilePage() {
                         "h-[36px] rounded-[12px] border text-[12px] font-black transition-colors disabled:opacity-50",
                         isSelected
                           ? "border-[var(--purple2)] bg-[var(--purple)] text-white"
-                          : "border-white/15 bg-white/8 text-white/70",
+                          : "border-white/20 bg-[var(--bg1)] text-white/70",
                       )}
                     >
                       {day.label}
@@ -694,7 +693,7 @@ export default function ProfilePage() {
                 type="button"
                 onClick={handleReminderPermissionRequest}
                 disabled={isSavingReminders}
-                className="inline-flex h-[40px] items-center justify-center rounded-[14px] bg-white/10 px-[14px] text-[13px] font-bold text-white transition-transform active:scale-95 disabled:opacity-60"
+                className="inline-flex h-[40px] items-center justify-center rounded-[14px] bg-[var(--bg3)] px-[14px] text-[13px] font-bold text-white transition-transform active:scale-95 disabled:opacity-60"
               >
                 Pedir permiso
               </button>

@@ -19,9 +19,9 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
-        sacro: "bg-[linear-gradient(180deg,var(--yellow),var(--orange)_55%,var(--orange2))] text-white text-[18px] font-[900] shadow-[0_16px_28px_rgba(255,119,20,0.32)] hover:opacity-90 [text-shadow:0_2px_4px_rgba(0,0,0,0.18)]",
-        "sacro-purple": "bg-[linear-gradient(180deg,#9187ff,#665cff)] text-white text-[18px] font-[900] shadow-[0_16px_28px_rgba(80,70,255,0.28)] hover:opacity-90 [text-shadow:0_2px_4px_rgba(0,0,0,0.18)]",
-        "sacro-ghost": "bg-white/18 border border-white/20 text-white text-[18px] font-[900] hover:bg-white/25",
+        sacro: "bg-[var(--orange)] text-white text-[18px] font-[900] shadow-[0_16px_28px_rgba(255,119,20,0.32)] hover:brightness-110",
+        "sacro-purple": "bg-[var(--purple)] text-white text-[18px] font-[900] shadow-[0_16px_28px_rgba(80,70,255,0.28)] hover:brightness-110",
+        "sacro-ghost": "bg-[var(--bg3)] border border-white/20 text-white text-[18px] font-[900] hover:brightness-110",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

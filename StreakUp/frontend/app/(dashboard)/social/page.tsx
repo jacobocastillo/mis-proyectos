@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Copy, Flame, LogOut, Plus, RefreshCw, Trophy, Users } from "lucide-react";
+import { Check, ChevronDown, Clock3, Copy, Flame, LogOut, Plus, RefreshCw, Trophy, Users, X } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import {
   createSharedGroup,
   fetchSharedGroups,
@@ -12,13 +13,13 @@ import { fetchHabits } from "@/services/habits/habitService";
 import type { SharedStreakGroup, SharedStreakMember } from "@/types/social";
 import type { Habit } from "@/types/habits";
 
-function memberLabel(member: SharedStreakMember): { icon: string; text: string; color: string } {
-  if (member.status === "winner") return { icon: "🏆", text: "Ganador", color: "text-amber-300" };
-  if (member.status === "lost") return { icon: "❌", text: "Perdió", color: "text-red-400" };
-  if (member.status === "left") return { icon: "👋", text: "Salió", color: "text-white/40" };
+function memberLabel(member: SharedStreakMember): { icon: LucideIcon; text: string; color: string } {
+  if (member.status === "winner") return { icon: Trophy, text: "Ganador", color: "text-amber-300" };
+  if (member.status === "lost") return { icon: X, text: "Perdió", color: "text-red-400" };
+  if (member.status === "left") return { icon: LogOut, text: "Salió", color: "text-white/40" };
   return member.today_completed
-    ? { icon: "✅", text: "Validado hoy", color: "text-[#36d98f]" }
-    : { icon: "⏳", text: "Pendiente hoy", color: "text-amber-400" };
+    ? { icon: Check, text: "Validado hoy", color: "text-[#36d98f]" }
+    : { icon: Clock3, text: "Pendiente hoy", color: "text-amber-400" };
 }
 
 const DURATION_OPTIONS: Array<{ label: string; value: number | null }> = [
@@ -145,7 +146,7 @@ export default function SocialPage() {
         </div>
         <button
           onClick={() => void loadData(true)}
-          className="w-[48px] h-[48px] rounded-full bg-white/18 text-white grid place-items-center transition-transform active:scale-95"
+          className="w-[48px] h-[48px] rounded-full bg-[var(--bg3)] text-white grid place-items-center transition-transform active:scale-95"
           aria-label="Actualizar"
         >
           <RefreshCw className="size-5" />
@@ -160,7 +161,7 @@ export default function SocialPage() {
 
       <div className="grid gap-[14px] md:grid-cols-2">
         {/* Create form */}
-        <form onSubmit={handleCreate} className="rounded-[24px] bg-white/13 border border-white/20 p-[18px] space-y-[12px]">
+        <form onSubmit={handleCreate} className="rounded-[24px] bg-[var(--bg2)] border border-white/20 p-[18px] space-y-[12px]">
           <div className="flex items-center gap-[10px]">
             <Plus className="size-5 text-[var(--purple2)]" />
             <h3 className="text-[16px] font-bold">Crear grupo</h3>
@@ -171,7 +172,7 @@ export default function SocialPage() {
             onChange={(event) => setGroupName(event.target.value)}
             placeholder="Nombre del reto"
             maxLength={120}
-            className="h-[46px] w-full rounded-[16px] border border-white/15 bg-white/10 px-[14px] text-[14px] text-white placeholder:text-white/45 outline-none focus:border-[var(--purple2)]"
+            className="h-[46px] w-full rounded-[16px] border border-white/20 bg-[var(--bg1)] px-[14px] text-[14px] text-white placeholder:text-white/45 outline-none focus:border-[var(--purple2)]"
           />
           <div className="relative">
             <select
@@ -180,7 +181,7 @@ export default function SocialPage() {
                 setSelectedHabitId(event.target.value ? Number(event.target.value) : "")
               }
               aria-label="Seleccionar hábito"
-              className="h-[46px] w-full rounded-[16px] border border-white/15 bg-white/10 px-[14px] text-[14px] text-white outline-none focus:border-[var(--purple2)] appearance-none cursor-pointer"
+              className="h-[46px] w-full rounded-[16px] border border-white/20 bg-[var(--bg1)] px-[14px] text-[14px] text-white outline-none focus:border-[var(--purple2)] appearance-none cursor-pointer"
             >
               <option value="" className="bg-[#120548] text-white/60">
                 Seleccionar hábito…
@@ -191,9 +192,7 @@ export default function SocialPage() {
                 </option>
               ))}
             </select>
-            <span className="pointer-events-none absolute right-[14px] top-1/2 -translate-y-1/2 text-white/50 text-[10px]">
-              ▼
-            </span>
+            <ChevronDown className="pointer-events-none absolute right-[14px] top-1/2 size-4 -translate-y-1/2 text-white/70" aria-hidden="true" />
           </div>
           <div className="relative">
             <select
@@ -202,7 +201,7 @@ export default function SocialPage() {
                 setDurationDays(event.target.value ? Number(event.target.value) : null)
               }
               aria-label="Duración del reto"
-              className="h-[46px] w-full rounded-[16px] border border-white/15 bg-white/10 px-[14px] text-[14px] text-white outline-none focus:border-[var(--purple2)] appearance-none cursor-pointer"
+              className="h-[46px] w-full rounded-[16px] border border-white/20 bg-[var(--bg1)] px-[14px] text-[14px] text-white outline-none focus:border-[var(--purple2)] appearance-none cursor-pointer"
             >
               {DURATION_OPTIONS.map((opt) => (
                 <option
@@ -214,9 +213,7 @@ export default function SocialPage() {
                 </option>
               ))}
             </select>
-            <span className="pointer-events-none absolute right-[14px] top-1/2 -translate-y-1/2 text-white/50 text-[10px]">
-              ▼
-            </span>
+            <ChevronDown className="pointer-events-none absolute right-[14px] top-1/2 size-4 -translate-y-1/2 text-white/70" aria-hidden="true" />
           </div>
           <button
             type="submit"
@@ -228,7 +225,7 @@ export default function SocialPage() {
         </form>
 
         {/* Join form */}
-        <form onSubmit={handleJoin} className="rounded-[24px] bg-white/13 border border-white/20 p-[18px] space-y-[12px]">
+        <form onSubmit={handleJoin} className="rounded-[24px] bg-[var(--bg2)] border border-white/20 p-[18px] space-y-[12px]">
           <div className="flex items-center gap-[10px]">
             <Users className="size-5 text-[#36d98f]" />
             <h3 className="text-[16px] font-bold">Unirme</h3>
@@ -237,7 +234,7 @@ export default function SocialPage() {
             value={inviteCode}
             onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
             placeholder="Código de invitación"
-            className="h-[46px] w-full rounded-[16px] border border-white/15 bg-white/10 px-[14px] text-[14px] uppercase tracking-[0.08em] text-white placeholder:normal-case placeholder:tracking-normal placeholder:text-white/45 outline-none focus:border-[#36d98f]"
+            className="h-[46px] w-full rounded-[16px] border border-white/20 bg-[var(--bg1)] px-[14px] text-[14px] uppercase tracking-[0.08em] text-white placeholder:normal-case placeholder:tracking-normal placeholder:text-white/45 outline-none focus:border-[#36d98f]"
           />
           <button
             type="submit"
@@ -253,7 +250,7 @@ export default function SocialPage() {
       <div className="space-y-[14px]">
         <h3 className="text-[18px] font-bold">Mis grupos</h3>
         {groups.length === 0 ? (
-          <div className="rounded-[24px] bg-white/10 border border-white/20 p-[24px] text-center text-[14px] text-white/74">
+          <div className="rounded-[24px] bg-[var(--bg2)] border border-white/20 p-[24px] text-center text-[14px] text-white/74">
             Crea un duelo privado o únete con un código para competir con amigos.
           </div>
         ) : (
@@ -262,7 +259,7 @@ export default function SocialPage() {
             const winners = group.members?.filter((m) => m.status === "winner") ?? [];
 
             return (
-              <div key={group.id} className="rounded-[24px] bg-white/13 border border-white/20 p-[18px] space-y-[14px]">
+              <div key={group.id} className="rounded-[24px] bg-[var(--bg2)] border border-white/20 p-[18px] space-y-[14px]">
                 {/* Header */}
                 <div className="flex items-start justify-between gap-[12px]">
                   <div className="min-w-0 flex-1">
@@ -313,7 +310,7 @@ export default function SocialPage() {
                 {/* Today stats + invite code */}
                 <div className="grid grid-cols-2 gap-[10px]">
                   {!isFinished && (
-                    <div className="rounded-[16px] bg-white/10 p-[12px]">
+                    <div className="rounded-[16px] bg-[var(--bg1)] p-[12px]">
                       <p className="text-[11px] text-white/60 font-bold uppercase">Hoy</p>
                       <p className="text-[18px] font-black">
                         {group.shared_streak.today_completed_members}/{group.shared_streak.required_members}
@@ -323,7 +320,7 @@ export default function SocialPage() {
                   <button
                     type="button"
                     onClick={() => void navigator.clipboard?.writeText(group.invite_code)}
-                    className={`rounded-[16px] bg-white/10 p-[12px] text-left transition-colors hover:bg-white/16 ${isFinished ? "col-span-2" : ""}`}
+                    className={`rounded-[16px] bg-[var(--bg1)] p-[12px] text-left transition-colors hover:brightness-110 ${isFinished ? "col-span-2" : ""}`}
                   >
                     <p className="text-[11px] text-white/60 font-bold uppercase">Código</p>
                     <p className="text-[16px] font-black tracking-[0.08em]">
@@ -337,15 +334,16 @@ export default function SocialPage() {
                 {group.members?.length ? (
                   <div className="space-y-[6px]">
                     {group.members.map((member) => {
-                      const { icon, text, color } = memberLabel(member);
+                      const { icon: StatusIcon, text, color } = memberLabel(member);
                       return (
                         <div
                           key={member.user_id}
-                          className="flex items-center justify-between rounded-[14px] bg-white/8 px-[12px] py-[10px]"
+                          className="flex items-center justify-between rounded-[14px] bg-[var(--bg1)] px-[12px] py-[10px]"
                         >
                           <span className="text-[14px] font-bold">{member.username}</span>
                           <span className={`text-[12px] font-bold ${color}`}>
-                            {icon} {text}
+                            <StatusIcon className="inline size-3.5 mr-1" aria-hidden="true" />
+                            {text}
                           </span>
                         </div>
                       );

@@ -2,7 +2,7 @@
 
 import { Suspense, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Flame, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { login, saveSession } from "@/services/auth/authService";
@@ -35,13 +35,15 @@ function LoginPageContent() {
   return (
     <div className="absolute inset-0 grid place-items-center p-[26px_22px] overflow-hidden z-10 animate-[enter_0.28s_ease_both]">
       <div className="w-full max-w-[380px] relative z-10 text-center">
-        <div className="text-[58px] drop-shadow-[0_0_20px_rgba(255,150,30,0.8)] animate-[float_2.4s_ease-in-out_infinite]">🔥</div>
-        <div className="mt-[10px] mb-[22px]">
-          <h1 className="text-[42px] leading-[1.02] tracking-[-1px] font-bold">Streak Up</h1>
-          <p className="text-white/74">Bienvenido de vuelta</p>
+        <div className="mx-auto size-14 rounded-2xl bg-[var(--bg3)] text-[var(--yellow)] grid place-items-center">
+          <Flame className="size-8" strokeWidth={2.4} aria-hidden="true" />
+        </div>
+        <div className="mt-4 mb-6">
+          <h1 className="text-[36px] leading-[1.02] tracking-[-1px] font-bold">Streak Up</h1>
+          <p className="text-white/70 mt-2">Bienvenido de vuelta</p>
         </div>
         
-        <div className="p-[24px] rounded-[28px] bg-[linear-gradient(145deg,rgba(255,255,255,0.20),rgba(255,255,255,0.10))] border border-white/20 shadow-[0_22px_55px_rgba(18,5,72,0.32)] backdrop-blur-[18px]">
+        <div className="p-[22px] rounded-[24px] bg-[var(--bg2)] border border-white/12">
           <form onSubmit={handleSubmit}>
             {error && (
               <div role="alert" className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300 text-left">
@@ -59,7 +61,7 @@ function LoginPageContent() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
-                className="w-full h-[58px] rounded-[20px] border border-white/14 bg-[#27125e8c] text-white text-[17px] px-[18px] outline-none placeholder:text-white/55 focus-visible:ring-2 focus-visible:ring-white/60"
+                className="w-full h-[54px] rounded-[14px] border border-white/15 bg-[#27125e] text-white text-[16px] px-[16px] outline-none placeholder:text-white/45 focus-visible:ring-2 focus-visible:ring-[var(--yellow)]"
               />
             </div>
 
@@ -73,7 +75,7 @@ function LoginPageContent() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
-                className="w-full h-[58px] rounded-[20px] border border-white/14 bg-[#27125e8c] text-white text-[17px] px-[18px] outline-none placeholder:text-white/55 focus-visible:ring-2 focus-visible:ring-white/60"
+                className="w-full h-[54px] rounded-[14px] border border-white/15 bg-[#27125e] text-white text-[16px] px-[16px] outline-none placeholder:text-white/45 focus-visible:ring-2 focus-visible:ring-[var(--yellow)]"
               />
             </div>
             

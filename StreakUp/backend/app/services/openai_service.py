@@ -7,12 +7,14 @@ Responsibility:
 
 import base64
 import json
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 from flask import current_app
 import openai
 from openai import OpenAI
 
-from app.config import is_openai_configured
+from app.config import get_image_validation_provider, is_openai_configured
 
 VALIDATION_NOT_CONFIGURED_CODE = "validation_not_configured"
 VALIDATION_PROVIDER_UNAVAILABLE_CODE = "validation_provider_unavailable"
@@ -72,7 +74,8 @@ def analyze_habit_image(habit_name: str, image_base64: str, mime_type: str | Non
     Returns:
         dict with keys: valido (bool), razon (str), confianza (float).
     """
-    if not is_openai_configured(current_app.config):
+    provider = get_image_validation_provider(current_app.config)
+    if provider is None:
         raise ValidationUnavailableError(
             "La validación de fotos no está disponible en este entorno.",
             VALIDATION_NOT_CONFIGURED_CODE,
@@ -80,8 +83,6 @@ def analyze_habit_image(habit_name: str, image_base64: str, mime_type: str | Non
 
     normalized_mime_type = _normalize_mime_type(mime_type)
     normalized_image_base64 = _sanitize_base64_payload(image_base64)
-    api_key = str(current_app.config.get("OPENAI_API_KEY") or "").strip()
-
     prompt = (
         "Eres un sistema que valida evidencia visual de hábitos.\n\n"
         f"Hábito: {habit_name}\n\n"
@@ -98,6 +99,16 @@ def analyze_habit_image(habit_name: str, image_base64: str, mime_type: str | Non
         "- Responde ÚNICAMENTE con el JSON, sin texto adicional."
     )
 
+    if provider == "gemini":
+        raw_content = _request_gemini_image_analysis(
+            prompt,
+            normalized_image_base64,
+            normalized_mime_type,
+            str(current_app.config.get("GEMINI_API_KEY") or "").strip(),
+        )
+        return _parse_ai_json_response(raw_content)
+
+    api_key = str(current_app.config.get("OPENAI_API_KEY") or "").strip()
     try:
         client = OpenAI(api_key=api_key, timeout=20.0)
         response = client.chat.completions.create(
@@ -171,6 +182,85 @@ def analyze_habit_image(habit_name: str, image_base64: str, mime_type: str | Non
         "razon": str(result.get("razon", "Sin razón proporcionada.")),
         "confianza": float(result.get("confianza", 0.0)),
     }
+
+
+def _request_gemini_image_analysis(
+    prompt: str,
+    image_base64: str,
+    mime_type: str,
+    api_key: str,
+) -> str:
+    request_body = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt},
+                    {
+                        "inlineData": {
+                            "mimeType": mime_type,
+                            "data": image_base64,
+                        }
+                    },
+                ]
+            }
+        ],
+        "generationConfig": {
+            "temperature": 0.2,
+            "responseMimeType": "application/json",
+            "maxOutputTokens": 300,
+        },
+    }
+    request = Request(
+        "https://generativelanguage.googleapis.com/v1beta/models/"
+        "gemini-2.5-flash:generateContent",
+        data=json.dumps(request_body).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "x-goog-api-key": api_key,
+        },
+        method="POST",
+    )
+
+    try:
+        with urlopen(request, timeout=20.0) as response:
+            response_data = json.loads(response.read())
+    except HTTPError as exc:
+        if exc.code in {400, 401, 403}:
+            code = VALIDATION_AUTH_ERROR_CODE
+            message = "La llave de Gemini es inválida o no tiene acceso al modelo."
+        elif exc.code == 429:
+            code = VALIDATION_QUOTA_EXCEEDED_CODE
+            message = "Se han agotado los créditos o la cuota de Gemini."
+        else:
+            code = VALIDATION_PROVIDER_UNAVAILABLE_CODE
+            message = "La validación de fotos no está disponible temporalmente."
+        current_app.logger.warning(
+            "Gemini image validation returned HTTP %s.",
+            exc.code,
+        )
+        raise ValidationUnavailableError(message, code) from exc
+    except (URLError, TimeoutError, OSError) as exc:
+        current_app.logger.warning("Gemini image validation request failed.")
+        raise ValidationUnavailableError(
+            "La validación de fotos no está disponible temporalmente.",
+            VALIDATION_PROVIDER_UNAVAILABLE_CODE,
+        ) from exc
+    except json.JSONDecodeError as exc:
+        current_app.logger.warning("Gemini image validation returned invalid response JSON.")
+        raise ValidationUnavailableError(
+            "La validación de fotos no está disponible temporalmente.",
+            VALIDATION_PROVIDER_UNAVAILABLE_CODE,
+        ) from exc
+
+    try:
+        parts = response_data["candidates"][0]["content"]["parts"]
+        return "".join(str(part["text"]) for part in parts if "text" in part)
+    except (KeyError, IndexError, TypeError) as exc:
+        current_app.logger.warning("Gemini image validation response did not contain candidate text.")
+        raise ValidationUnavailableError(
+            "La validación de fotos no está disponible temporalmente.",
+            VALIDATION_PROVIDER_UNAVAILABLE_CODE,
+        ) from exc
 
 
 def _parse_ai_json_response(raw_content: object) -> dict:

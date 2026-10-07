@@ -103,6 +103,7 @@ class Config:
     CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "")
 
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 
 def is_development_like(config: Mapping[str, object]) -> bool:
@@ -165,19 +166,29 @@ def is_openai_configured(config: Mapping[str, object]) -> bool:
     return bool(str(config.get("OPENAI_API_KEY") or "").strip())
 
 
-def describe_openai_configuration(config: Mapping[str, object]) -> dict[str, object]:
+def get_image_validation_provider(config: Mapping[str, object]) -> str | None:
+    """Prefer Gemini for image validation when configured, otherwise use OpenAI."""
+    if str(config.get("GEMINI_API_KEY") or "").strip():
+        return "gemini"
+    if is_openai_configured(config):
+        return "openai"
+    return None
+
+
+def describe_image_validation_configuration(config: Mapping[str, object]) -> dict[str, object]:
     """Describe validation configuration without overstating provider readiness."""
-    if not is_openai_configured(config):
+    provider = get_image_validation_provider(config)
+    if provider is None:
         return {
-            "provider": "openai",
+            "provider": None,
             "configured": False,
             "status": "not_configured",
-            "message": "OpenAI API key is not configured.",
+            "message": "Configura GEMINI_API_KEY u OPENAI_API_KEY para habilitar la validación de fotos.",
         }
 
     return {
-        "provider": "openai",
+        "provider": provider,
         "configured": True,
         "status": "configured_unverified",
-        "message": "OpenAI API key is configured; provider availability is verified at request time.",
+        "message": f"La clave de {provider} está configurada; el proveedor se verifica al validar una imagen.",
     }

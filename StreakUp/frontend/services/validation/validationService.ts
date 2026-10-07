@@ -16,11 +16,11 @@ function mapValidationError(error: unknown): Error {
   }
 
   if (error.apiCode === "validation_auth_error") {
-    return new Error("Problema con la llave de OpenAI. Verifica que esté bien configurada.");
+    return new Error("La llave del proveedor de IA no es válida o no tiene acceso al modelo.");
   }
 
   if (error.apiCode === "validation_quota_exceeded") {
-    return new Error("Se han agotado los créditos o la cuota de la API de OpenAI.");
+    return new Error("Se han agotado los créditos o la cuota del proveedor de IA.");
   }
 
   if (error.apiCode === "validation_provider_unavailable") {

@@ -18,7 +18,7 @@ export function Mascot() {
       onClick={handleInteraction}
       title="Cambiar ropa de la mascota"
     >
-      <div className="absolute w-[178px] h-[178px] rounded-full bg-[radial-gradient(circle,rgba(255,224,70,0.58),rgba(255,139,24,0.26)_42%,transparent_70%)] blur-[16px] -z-10 animate-[mascotGlow_2.4s_ease-in-out_infinite]" />
+      <div className="absolute w-[178px] h-[178px] rounded-full bg-[var(--yellow)]/30 blur-[16px] -z-10 animate-[mascotGlow_2.4s_ease-in-out_infinite]" />
       
       {/* We use standard img for now since we don't know if the image is in public or optimized domain, but Image from next is better if it is local */}
       <img

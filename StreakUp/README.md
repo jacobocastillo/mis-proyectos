@@ -50,8 +50,9 @@ alojarse en Neon. Los tres servicios se configuran por separado; el manifiesto
    `render.yaml`.
 3. En las variables del servicio, configura `DATABASE_URL` con la URL de Neon
    y `CORS_ALLOWED_ORIGINS` con el dominio del frontend en Vercel. Render genera
-   `SECRET_KEY` y `JWT_SECRET_KEY`. El arranque aplica las migraciones y carga
-   el catálogo.
+   `SECRET_KEY` y `JWT_SECRET_KEY`. Configura `GEMINI_API_KEY` para validar
+   fotos con Gemini; `OPENAI_API_KEY` continúa disponible como alternativa. El
+   arranque aplica las migraciones y carga el catálogo.
 4. Espera a que el API responda en `/readyz` antes de conectar el frontend.
 
 ### Frontend en Vercel
@@ -143,7 +144,7 @@ cuando hagan falta:
 - `frontend/.env.example`
 
 No subas claves, tokens, bases de datos ni archivos `.env` al repositorio.
-`OPENAI_API_KEY` es opcional y solo se requiere para la validación de hábitos
-con fotos.
+`GEMINI_API_KEY` habilita la validación de hábitos con fotos y tiene prioridad
+si también existe `OPENAI_API_KEY`. OpenAI permanece como alternativa.
 
 Para despliegue, privacidad y operacion, consulta [`docs/`](./docs/).

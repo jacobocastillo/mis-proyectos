@@ -1,8 +1,10 @@
+import json
 import os
 import tempfile
 import unittest
 from datetime import date
-from unittest.mock import patch
+from urllib.error import HTTPError
+from unittest.mock import MagicMock, patch
 
 from app import create_app
 from app.extensions import db
@@ -10,8 +12,10 @@ from app.models.habit import Habit
 from app.models.user import User
 from app.models.user_habit import UserHabit
 from app.services.openai_service import (
+    VALIDATION_QUOTA_EXCEEDED_CODE,
     VALIDATION_PROVIDER_UNAVAILABLE_CODE,
     ValidationUnavailableError,
+    analyze_habit_image,
 )
 
 
@@ -31,6 +35,7 @@ class OperationalReadinessTestCase(unittest.TestCase):
                 "TESTING": True,
                 "ENVIRONMENT": "test",
                 "OPENAI_API_KEY": "",
+                "GEMINI_API_KEY": "",
             },
         )
 
@@ -102,12 +107,87 @@ class OperationalReadinessTestCase(unittest.TestCase):
         self.assertEqual(
             payload["checks"]["validation"],
             {
-                "provider": "openai",
+                "provider": None,
                 "configured": False,
                 "status": "not_configured",
-                "message": "OpenAI API key is not configured.",
+                "message": "Configura GEMINI_API_KEY u OPENAI_API_KEY para habilitar la validación de fotos.",
             },
         )
+
+    def test_readyz_reports_gemini_as_the_image_validation_provider(self) -> None:
+        self._seed_catalog()
+        self.app.config["GEMINI_API_KEY"] = "test-gemini-key"
+
+        response = self.client.get("/readyz")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.get_json()["checks"]["validation"],
+            {
+                "provider": "gemini",
+                "configured": True,
+                "status": "configured_unverified",
+                "message": "La clave de gemini está configurada; el proveedor se verifica al validar una imagen.",
+            },
+        )
+
+    def test_gemini_image_request_sends_key_in_header_and_parses_result(self) -> None:
+        self.app.config["GEMINI_API_KEY"] = "test-gemini-key"
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = json.dumps(
+            {
+                "candidates": [
+                    {
+                        "content": {
+                            "parts": [
+                                {
+                                    "text": (
+                                        '{"valido":true,"razon":"Evidencia válida.",'
+                                        '"confianza":0.9}'
+                                    )
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        ).encode("utf-8")
+
+        with patch("app.services.openai_service.urlopen", return_value=response) as urlopen:
+            result = analyze_habit_image("Meditar", "aGVsbG8=", "image/jpeg")
+
+        request = urlopen.call_args.args[0]
+        request_body = json.loads(request.data)
+        self.assertEqual(
+            result,
+            {"valido": True, "razon": "Evidencia válida.", "confianza": 0.9},
+        )
+        self.assertEqual(request.get_header("X-goog-api-key"), "test-gemini-key")
+        self.assertNotIn("test-gemini-key", request.full_url)
+        self.assertEqual(
+            request_body["contents"][0]["parts"][1]["inlineData"]["mimeType"],
+            "image/jpeg",
+        )
+        self.assertEqual(
+            request_body["contents"][0]["parts"][1]["inlineData"]["data"],
+            "aGVsbG8=",
+        )
+
+    def test_gemini_quota_error_uses_stable_validation_code(self) -> None:
+        self.app.config["GEMINI_API_KEY"] = "test-gemini-key"
+        error = HTTPError(
+            "https://generativelanguage.googleapis.com/",
+            429,
+            "quota exceeded",
+            {},
+            None,
+        )
+
+        with patch("app.services.openai_service.urlopen", side_effect=error):
+            with self.assertRaises(ValidationUnavailableError) as raised:
+                analyze_habit_image("Meditar", "aGVsbG8=", "image/jpeg")
+
+        self.assertEqual(raised.exception.code, VALIDATION_QUOTA_EXCEEDED_CODE)
 
     def test_readyz_reports_validation_as_configured_but_unverified_when_key_exists(self) -> None:
         self._seed_catalog()
@@ -122,7 +202,7 @@ class OperationalReadinessTestCase(unittest.TestCase):
                 "provider": "openai",
                 "configured": True,
                 "status": "configured_unverified",
-                "message": "OpenAI API key is configured; provider availability is verified at request time.",
+                "message": "La clave de openai está configurada; el proveedor se verifica al validar una imagen.",
             },
         )
 

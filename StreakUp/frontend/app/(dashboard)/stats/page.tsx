@@ -13,6 +13,9 @@ import {
   CheckCircle2,
   XCircle,
   Hourglass,
+  ListChecks,
+  Sparkles,
+  Target,
   icons,
 } from "lucide-react";
 import { fetchHabitHistory } from "@/services/history/historyService";
@@ -135,12 +138,10 @@ const WeeklyChart = memo(function WeeklyChart({ data }: { data: WeekDay[] }) {
             <span className="text-[10px] text-white/55 font-bold">
               {day.completed}
             </span>
-            <div className="w-full h-24 bg-white/10 rounded-lg relative overflow-hidden shadow-inner border border-white/5">
+            <div className="w-full h-24 bg-[var(--bg1)] rounded-lg relative overflow-hidden border border-white/10">
               <div
                 className={`absolute bottom-0 left-0 right-0 rounded-lg transition-all duration-700 ease-out ${
-                  isToday
-                    ? "bg-gradient-to-t from-[var(--purple)] to-[var(--purple2)] shadow-[0_0_12px_rgba(157,85,255,0.6)]"
-                    : "bg-gradient-to-t from-[var(--purple)]/50 to-[var(--purple2)]/50"
+                  isToday ? "bg-[var(--purple2)]" : "bg-[var(--purple)]"
                 }`}
                 style={{ height: `${Math.max(pct, 8)}%` }}
               />
@@ -163,10 +164,10 @@ const WeeklyChart = memo(function WeeklyChart({ data }: { data: WeekDay[] }) {
 
 const StreakCalendar = memo(function StreakCalendar({ data }: { data: CalendarDay[] }) {
   const intensityColors = [
-    "bg-white/10 border border-white/5",
-    "bg-[var(--purple)]/30 border border-[var(--purple)]/20",
-    "bg-[var(--purple)]/60 border border-[var(--purple)]/40 shadow-[0_0_8px_rgba(157,85,255,0.4)]",
-    "bg-[var(--purple)] border border-[var(--purple2)] shadow-[0_0_12px_rgba(157,85,255,0.8)]",
+    "bg-[var(--bg1)] border border-white/10",
+    "bg-[var(--bg2)] border border-white/10",
+    "bg-[var(--purple)] border border-[var(--purple2)]",
+    "bg-[var(--purple2)] border border-[var(--yellow)]",
   ];
 
   return (
@@ -215,21 +216,21 @@ function formatHistoryDate(value: string | null): string {
 const RecentHistory = memo(function RecentHistory({ events }: { events: HabitHistoryEvent[] }) {
   if (events.length === 0) {
     return (
-      <div className="p-[20px] rounded-[24px] bg-white/13 border border-white/20 text-center">
+      <div className="p-[20px] rounded-[24px] bg-[var(--bg2)] border border-white/20 text-center">
         <p className="text-[14px] text-white/74">Aún no hay eventos de historial.</p>
       </div>
     );
   }
 
   return (
-    <div className="p-[20px] rounded-[24px] bg-white/13 border border-white/20 space-y-[16px]">
+    <div className="p-[20px] rounded-[24px] bg-[var(--bg2)] border border-white/20 space-y-[16px]">
       <div className="flex items-center gap-[8px]">
         <Clock3 className="size-5 text-[var(--yellow)] drop-shadow-[0_0_8px_rgba(255,229,54,0.5)]" />
         <h3 className="text-[18px] font-bold">Historial reciente</h3>
       </div>
       <div className="space-y-[10px]">
         {events.map((event) => (
-          <div key={event.id} className="rounded-[18px] bg-white/10 border border-white/10 p-[14px] space-y-2">
+          <div key={event.id} className="rounded-[18px] bg-[var(--bg1)] border border-white/10 p-[14px] space-y-2">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-[15px] font-bold truncate">{event.habit_name ?? "Hábito"}</p>
@@ -237,7 +238,7 @@ const RecentHistory = memo(function RecentHistory({ events }: { events: HabitHis
                   {event.category_name ?? "Sin categoría"} · {formatHistoryDate(event.event_date)}
                 </p>
               </div>
-              <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-white/12 px-2.5 py-1 text-[11px] font-bold text-white/84">
+              <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-[var(--bg3)] px-2.5 py-1 text-[11px] font-bold text-white/84">
                 <HistoryStatusIcon status={event.status} />
                 {HISTORY_STATUS_LABELS[event.status]}
               </span>
@@ -320,13 +321,13 @@ export default function StatsPage() {
           <p className="text-white/74 text-[15px]">Tu progreso en detalle</p>
         </div>
 
-        <div className="p-[24px] rounded-[24px] bg-white/10 border border-white/20 text-center space-y-4">
+        <div className="p-[24px] rounded-[24px] bg-[var(--bg2)] border border-white/20 text-center space-y-4">
           <div className="space-y-2">
             <h2 className="text-[18px] font-bold text-white">{viewState.title}</h2>
             <p className="text-[14px] text-white/74">{viewState.message}</p>
             {offlinePendingCount > 0 ? (
               <p className="text-[13px] text-yellow-300 font-medium">
-                ⏳ {offlinePendingCount} cambio{offlinePendingCount === 1 ? "" : "s"} pendiente{offlinePendingCount === 1 ? "" : "s"} de sincronización
+                <Hourglass className="inline size-4 mr-1 text-[var(--yellow)]" aria-hidden="true" /> {offlinePendingCount} cambio{offlinePendingCount === 1 ? "" : "s"} pendiente{offlinePendingCount === 1 ? "" : "s"} de sincronización
               </p>
             ) : null}
           </div>
@@ -375,19 +376,19 @@ export default function StatsPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-[14px]">
-        <StatCard emoji="🔥" label="Racha" value={`${summary.streak} días`} />
-        <StatCard emoji="🎯" label="Tasa" value={`${summary.completion_rate}%`} />
+        <StatCard icon={Flame} label="Racha" value={`${summary.streak} días`} />
+        <StatCard icon={Target} label="Tasa" value={`${summary.completion_rate}%`} />
       </div>
 
       <div className="grid grid-cols-2 gap-[14px]">
-        <StatCard emoji="🚀" label="Total Hábitos" value={summary.total_habits} />
-        <StatCard emoji="✨" label="Total Check-ins" value={summary.total_completed} />
+        <StatCard icon={ListChecks} label="Total Hábitos" value={summary.total_habits} />
+        <StatCard icon={Sparkles} label="Total Check-ins" value={summary.total_completed} />
       </div>
 
       {/* Completion Ring + Weekly Chart */}
       <div className="space-y-[14px]">
         {/* Weekly Bar Chart */}
-        <div className="p-[20px] rounded-[24px] bg-white/13 border border-white/20 space-y-[16px]">
+        <div className="p-[20px] rounded-[24px] bg-[var(--bg2)] border border-white/20 space-y-[16px]">
           <div className="flex items-center gap-[8px]">
             <BarChart3 className="size-5 text-[var(--yellow)] drop-shadow-[0_0_8px_rgba(255,229,54,0.5)]" />
             <h3 className="text-[18px] font-bold">Actividad semanal</h3>
@@ -396,7 +397,7 @@ export default function StatsPage() {
         </div>
 
         {/* Completion Ring */}
-        <div className="p-[20px] rounded-[24px] bg-white/13 border border-white/20 space-y-[16px]">
+        <div className="p-[20px] rounded-[24px] bg-[var(--bg2)] border border-white/20 space-y-[16px]">
           <h3 className="text-[18px] font-bold text-center">Tasa de completado</h3>
           <CompletionRing rate={summary.completion_rate} />
           <p className="text-[13px] text-white/74 text-center font-medium">
@@ -407,7 +408,7 @@ export default function StatsPage() {
 
       {/* Per-habit Breakdown */}
       {perHabit.length > 0 ? (
-        <div className="p-[20px] rounded-[24px] bg-white/13 border border-white/20 space-y-[20px]">
+        <div className="p-[20px] rounded-[24px] bg-[var(--bg2)] border border-white/20 space-y-[20px]">
           <h3 className="text-[18px] font-bold">Desglose por hábito</h3>
           <div className="space-y-[16px]">
             {perHabit.map((h) => {
@@ -416,7 +417,7 @@ export default function StatsPage() {
               <div key={h.id} className="space-y-[8px]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-[10px]">
-                    <span className="w-[36px] h-[36px] rounded-[12px] bg-white/18 grid place-items-center text-white">
+                    <span className="w-[36px] h-[36px] rounded-[12px] bg-[var(--bg3)] grid place-items-center text-white">
                       <IconComp className="size-5" />
                     </span>
                     <span className="text-[15px] font-bold">
@@ -427,9 +428,9 @@ export default function StatsPage() {
                     {h.completed}/{h.total} d
                   </span>
                 </div>
-                <div className="h-[10px] rounded-full bg-white/10 overflow-hidden shadow-inner border border-white/5">
+                <div className="h-[10px] rounded-full bg-[var(--bg1)] overflow-hidden border border-white/10">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-[var(--purple)] to-[var(--purple2)] transition-all duration-700 ease-out shadow-[0_0_12px_rgba(157,85,255,0.6)]"
+                    className="h-full rounded-full bg-[var(--purple2)] transition-all duration-700 ease-out"
                     style={{ width: `${h.rate}%` }}
                   />
                 </div>
@@ -440,7 +441,7 @@ export default function StatsPage() {
       ) : null}
 
       {/* 30-day Calendar */}
-      <div className="p-[20px] rounded-[24px] bg-white/13 border border-white/20 space-y-[16px]">
+      <div className="p-[20px] rounded-[24px] bg-[var(--bg2)] border border-white/20 space-y-[16px]">
         <div className="flex items-center gap-[8px]">
           <Calendar className="size-5 text-[var(--yellow)] drop-shadow-[0_0_8px_rgba(255,229,54,0.5)]" />
           <h3 className="text-[18px] font-bold">Últimos 30 días</h3>
@@ -449,7 +450,7 @@ export default function StatsPage() {
         <div className="flex items-center justify-end gap-[6px] pt-2">
           <span className="text-[11px] text-white/55 font-bold">Menos</span>
           <div className="flex gap-[4px]">
-            <div className="size-[14px] rounded-[4px] bg-white/10 border border-white/5" />
+            <div className="size-[14px] rounded-[4px] bg-[var(--bg1)] border border-white/10" />
             <div className="size-[14px] rounded-[4px] bg-[var(--purple)]/30 border border-[var(--purple)]/20" />
             <div className="size-[14px] rounded-[4px] bg-[var(--purple)]/60 border border-[var(--purple)]/40" />
             <div className="size-[14px] rounded-[4px] bg-[var(--purple)] border border-[var(--purple2)] shadow-[0_0_8px_rgba(157,85,255,0.8)]" />
@@ -461,8 +462,8 @@ export default function StatsPage() {
       <RecentHistory events={historyEvents} />
 
       {/* Records */}
-      <div className="p-0 overflow-hidden rounded-[24px] bg-white/13 border border-white/20 divide-y divide-white/10">
-        <div className="flex items-center gap-[8px] p-[20px] bg-white/5">
+      <div className="p-0 overflow-hidden rounded-[24px] bg-[var(--bg2)] border border-white/20 divide-y divide-white/10">
+        <div className="flex items-center gap-[8px] p-[20px] bg-[var(--bg3)]">
           <Trophy className="size-5 text-[var(--yellow)] drop-shadow-[0_0_8px_rgba(255,229,54,0.5)]" />
           <h3 className="text-[18px] font-bold">Récords personales</h3>
         </div>

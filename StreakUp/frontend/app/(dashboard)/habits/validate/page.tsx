@@ -12,6 +12,7 @@ import {
   Flame,
   ImageIcon,
   Info,
+  Target,
   icons,
 } from "lucide-react";
 import { fetchHabit } from "@/services/habits/habitService";
@@ -314,7 +315,7 @@ function ValidateHabitPageContent() {
             </span>
             {targetSummary ? (
               <span className="inline-flex items-center rounded-full bg-secondary text-foreground px-2 py-0.5 text-[11px] font-medium">
-                🎯 {targetSummary}
+                <Target className="inline size-3.5 mr-1" aria-hidden="true" /> {targetSummary}
               </span>
             ) : null}
             {habit.xp_base != null ? (

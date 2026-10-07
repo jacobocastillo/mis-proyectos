@@ -3,7 +3,20 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Settings, Plus, icons } from "lucide-react";
+import {
+  Coffee,
+  Flame,
+  Hourglass,
+  Plus,
+  Settings,
+  Snowflake,
+  Sparkles,
+  Target,
+  Timer,
+  TrendingUp,
+  Trophy,
+  icons,
+} from "lucide-react";
 import { fetchTodayHabits, toggleCheckin } from "@/services/checkins/checkinService";
 import { fetchStatsSummary } from "@/services/stats/statsService";
 import { fetchSharedGroups } from "@/services/social/socialService";
@@ -30,10 +43,10 @@ const EMPTY_STATS: StatsSummary = {
 };
 
 const POMODORO_THEMES = [
-  { key: "fire", label: "Fuego", emoji: "🔥", animationClass: "animate-[fireFlicker_0.8s_ease-in-out_infinite]" },
-  { key: "candle", label: "Vela", emoji: "🕯️", animationClass: "animate-[candleBurn_3.5s_ease-in-out_infinite]" },
-  { key: "ice", label: "Hielo", emoji: "🧊", animationClass: "animate-[iceMelt_3.2s_ease-in-out_infinite]" },
-  { key: "hourglass", label: "Reloj", emoji: "⏳", animationClass: "animate-[clockFlip_2.2s_ease-in-out_infinite]" },
+  { key: "fire", label: "Fuego", icon: Flame, tone: "text-[var(--yellow)]" },
+  { key: "candle", label: "Vela", icon: Coffee, tone: "text-[var(--orange)]" },
+  { key: "ice", label: "Hielo", icon: Snowflake, tone: "text-cyan-200" },
+  { key: "hourglass", label: "Reloj", icon: Hourglass, tone: "text-violet-200" },
 ];
 
 export default function DashboardHomePage() {
@@ -145,7 +158,7 @@ export default function DashboardHomePage() {
           <h2 className="text-[30px] leading-[1.05] font-bold">Streak Up</h2>
           <p className="text-white/74 text-[15px]">Hoy es un gran día para avanzar</p>
         </div>
-        <button onClick={() => router.push("/profile")} aria-label="Ir a perfil y configuración" className="w-[48px] h-[48px] rounded-full bg-white/18 text-white grid place-items-center cursor-pointer transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80">
+        <button onClick={() => router.push("/profile")} aria-label="Ir a perfil y configuración" className="w-[48px] h-[48px] rounded-[15px] bg-[var(--bg2)] text-white grid place-items-center cursor-pointer transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--yellow)]">
           <Settings className="size-6" aria-hidden="true" />
         </button>
       </div>
@@ -157,52 +170,54 @@ export default function DashboardHomePage() {
       )}
 
       {/* Hero Card */}
-      <div className="bg-white/14 border border-white/20 rounded-[28px] shadow-[0_22px_55px_rgba(18,5,72,0.32)] backdrop-blur-[18px] relative overflow-hidden text-center px-[22px] pt-[28px] pb-[24px]">
-        <span className="absolute text-[var(--yellow)] text-[24px] [text-shadow:0_0_15px_currentColor] animate-[twinkle_1.7s_infinite] left-[18px] top-[66px]">✦</span>
-        <span className="absolute text-[var(--yellow)] text-[24px] [text-shadow:0_0_15px_currentColor] animate-[twinkle_1.7s_infinite] right-[42px] top-[16px] [animation-delay:0.5s]">✦</span>
-        <span className="absolute text-[var(--yellow)] text-[24px] [text-shadow:0_0_15px_currentColor] animate-[twinkle_1.7s_infinite] right-[46px] bottom-[48px] [animation-delay:0.9s]">✦</span>
+      <div className="bg-[var(--bg2)] border border-white/12 rounded-[24px] relative overflow-hidden text-center px-[22px] pt-[24px] pb-[22px]">
+        <div className="mx-auto mb-3 size-11 rounded-[14px] bg-[var(--bg3)] text-[var(--yellow)] grid place-items-center">
+          <Sparkles className="size-5" aria-hidden="true" />
+        </div>
         
-        <h1 className="text-[40px] leading-[1.02] tracking-[-1px] font-bold">
-          ¡Impulsa tu<br />
-          <span className="text-[var(--yellow)] [text-shadow:0_4px_0_rgba(95,35,0,0.16)]">Productividad!</span>
+        <h1 className="text-[32px] leading-[1.08] tracking-[-0.6px] font-bold">
+          Impulsa tu<br />
+          <span className="text-[var(--yellow)]">productividad</span>
         </h1>
 
         <Mascot />
 
         <Button variant="sacro" size="sacro" onClick={() => router.push("/pomodoro")}>
-          ¡Inicia tu Racha!
+          Inicia una sesión
         </Button>
       </div>
 
       {/* Mensaje del día */}
       {stats.feedback?.message && (
-        <div className="rounded-[20px] border border-[var(--yellow)]/25 bg-[var(--yellow)]/8 px-5 py-4 flex gap-3 items-start">
-          <span className="text-[18px] shrink-0 mt-[1px]" aria-hidden="true">✨</span>
-          <p className="text-white/90 text-[14px] leading-[1.6] italic">{stats.feedback.message}</p>
+        <div className="rounded-[18px] border border-white/12 bg-[var(--bg2)] px-5 py-4 flex gap-3 items-start">
+          <Sparkles className="size-5 shrink-0 mt-[1px] text-[var(--yellow)]" aria-hidden="true" />
+          <p className="text-white/90 text-[14px] leading-[1.6]">{stats.feedback.message}</p>
         </div>
       )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-[14px]">
-        <StatCard emoji="🔥" label="Racha" value={`${stats.streak} días`} />
-        <StatCard emoji="🎯" label="Hoy" value={`${stats.today_completed}/${stats.today_total}`} />
-        <StatCard emoji="🏆" label="XP" value={stats.total_xp} />
-        <StatCard emoji="📈" label="Tasa" value={`${stats.completion_rate}%`} />
+        <StatCard icon={Flame} label="Racha" value={`${stats.streak} días`} />
+        <StatCard icon={Target} label="Hoy" value={`${stats.today_completed}/${stats.today_total}`} />
+        <StatCard icon={Trophy} label="XP" value={stats.total_xp} />
+        <StatCard icon={TrendingUp} label="Tasa" value={`${stats.completion_rate}%`} />
       </div>
 
       {/* Pomodoro Modes */}
       <div>
         <div className="flex items-center justify-between mt-[24px] mb-[12px]">
           <h3 className="text-[18px] font-bold">Modo Pomodoro</h3>
-          <button onClick={() => router.push("/pomodoro")} aria-label="Ir al temporizador Pomodoro" className="w-[48px] h-[48px] rounded-full bg-white/18 text-[24px] grid place-items-center cursor-pointer transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80">
-            <span aria-hidden="true">⏱️</span>
+          <button onClick={() => router.push("/pomodoro")} aria-label="Ir al temporizador Pomodoro" className="w-[48px] h-[48px] rounded-[15px] bg-[var(--bg2)] text-[var(--yellow)] grid place-items-center cursor-pointer transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--yellow)]">
+            <Timer className="size-5" aria-hidden="true" />
           </button>
         </div>
         <div className="grid grid-cols-2 gap-[12px]">
           {POMODORO_THEMES.map((theme) => (
             <Link key={theme.key} href={`/pomodoro?theme=${theme.key}`}>
-              <div className="p-[18px] rounded-[24px] text-center border border-white/18 bg-white/14 cursor-pointer min-h-[112px] hover:bg-white/20 transition-colors">
-                <span className={`block text-[54px] mb-[8px] leading-none ${theme.animationClass}`}>{theme.emoji}</span>
+              <div className="p-[16px] rounded-[20px] text-center border border-white/12 bg-[var(--bg2)] cursor-pointer min-h-[104px] hover:bg-[var(--bg3)] transition-colors">
+                <span className={`mx-auto mb-2 size-12 rounded-[15px] bg-[var(--bg3)] grid place-items-center ${theme.tone}`}>
+                  <theme.icon className="size-6" aria-hidden="true" />
+                </span>
                 <b className="text-[16px] font-bold">{theme.label}</b>
               </div>
             </Link>
@@ -214,13 +229,13 @@ export default function DashboardHomePage() {
       <div>
         <div className="flex items-center justify-between mt-[24px] mb-[12px]">
           <h3 className="text-[18px] font-bold">Hoy</h3>
-          <button onClick={() => router.push("/habits/new")} aria-label="Crear nuevo hábito" className="w-[48px] h-[48px] rounded-full bg-white/18 text-[24px] grid place-items-center cursor-pointer transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80">
+          <button onClick={() => router.push("/habits/new")} aria-label="Crear nuevo hábito" className="w-[48px] h-[48px] rounded-[15px] bg-[var(--bg2)] text-[24px] grid place-items-center cursor-pointer transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--yellow)]">
             <Plus className="size-6 text-white" aria-hidden="true" />
           </button>
         </div>
 
         {todayHabits.length === 0 ? (
-          <div className="text-center p-8 bg-white/10 rounded-[24px] border border-white/20">
+          <div className="text-center p-8 bg-[var(--bg2)] rounded-[24px] border border-white/20">
             <p className="text-white/80 mb-4">No tienes hábitos diarios aún.</p>
             <Button variant="sacro-ghost" onClick={() => router.push("/habits/new")}>
               Crear hábito

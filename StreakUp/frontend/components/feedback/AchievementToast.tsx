@@ -12,7 +12,7 @@
  *   import { AchievementToast, showAchievementToast } from "@/components/feedback/AchievementToast";
  *
  *   // In any service or component after detecting a new achievement:
- *   showAchievementToast({ emoji: "🔥", name: "Racha de 7 días", xp_bonus: 50 });
+ *   showAchievementToast({ name: "Racha de 7 días", xp_bonus: 50 });
  *
  *   // In your root layout:
  *   <AchievementToast />
@@ -24,7 +24,6 @@ import { X, Sparkles } from "lucide-react";
 // ─── Imperative API ──────────────────────────────────────────────────────────
 
 export interface AchievementPayload {
-  emoji: string;
   name: string;
   xp_bonus?: number;
   description?: string | null;
@@ -73,7 +72,7 @@ export function AchievementToast() {
 
   if (!state.payload) return null;
 
-  const { emoji, name, xp_bonus, description } = state.payload;
+  const { name, xp_bonus, description } = state.payload;
 
   return (
     <div
@@ -88,15 +87,14 @@ export function AchievementToast() {
             : "-translate-y-6 opacity-0 scale-95"
         }`}
       >
-        <div className="relative rounded-2xl border border-yellow-400/30 bg-gradient-to-r from-yellow-950/95 via-[#1A1A2E]/98 to-orange-950/95 px-4 py-3.5 shadow-2xl shadow-yellow-500/20 backdrop-blur-md">
+        <div className="relative rounded-2xl border border-yellow-400/30 bg-[var(--bg2)] px-4 py-3.5 shadow-2xl">
           {/* Glow ring */}
           <div className="absolute inset-0 rounded-2xl ring-1 ring-yellow-400/20 pointer-events-none" />
 
           {/* Content */}
           <div className="flex items-center gap-3">
-            {/* Emoji badge */}
-            <div className="flex-shrink-0 size-12 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-2xl shadow-inner shadow-yellow-600/30">
-              {emoji}
+            <div className="flex-shrink-0 size-12 rounded-xl bg-[var(--bg3)] flex items-center justify-center text-yellow-300">
+              <Sparkles className="size-6" aria-hidden="true" />
             </div>
 
             {/* Text */}
@@ -133,7 +131,7 @@ export function AchievementToast() {
           {/* Progress bar */}
           <div className="mt-3 h-0.5 rounded-full bg-white/5 overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full"
+              className="h-full bg-[var(--yellow)] rounded-full"
               style={{
                 animation: state.visible
                   ? `shrink ${DISPLAY_DURATION_MS}ms linear forwards`

@@ -18,10 +18,10 @@ import type { PomodoroSession } from "@/types/pomodoro";
 import type { Habit } from "@/types/habits";
 
 const THEMES = {
-  fire: { label: "Fuego", bg: "from-orange-950 to-[#0A0A0A]", accent: "#F97316" },
-  candle: { label: "Vela", bg: "from-purple-950 to-[#0A0A0A]", accent: "#A855F7" },
-  ice: { label: "Hielo", bg: "from-blue-950 to-[#0A0A0A]", accent: "#3B82F6" },
-  hourglass: { label: "Reloj", bg: "from-amber-950 to-[#0A0A0A]", accent: "#D97706" },
+  fire: { label: "Fuego", background: "#1d0b86", accent: "#F97316" },
+  candle: { label: "Vela", background: "#4f22d9", accent: "#A855F7" },
+  ice: { label: "Hielo", background: "#05245e", accent: "#3B82F6" },
+  hourglass: { label: "Reloj", background: "#17113a", accent: "#D97706" },
 };
 
 type ThemeKey = keyof typeof THEMES;
@@ -348,7 +348,7 @@ function PomodoroContent() {
   const dashOffset = circumference * (1 - progress);
 
   return (
-    <div className={`min-h-screen bg-gradient-to-b ${theme.bg} flex flex-col pb-[80px]`}>
+    <div className="min-h-screen flex flex-col pb-[80px]" style={{ backgroundColor: theme.background }}>
       {/* Header */}
       <div className="px-4 pt-6 pb-2">
         <Link href="/" className="inline-flex items-center gap-2 text-white/75 hover:text-white transition-colors font-bold">
@@ -394,7 +394,7 @@ function PomodoroContent() {
               {timerState === "focus" ? "Enfocado" : timerState === "break" ? "Descanso" : timerState === "finished" ? "¡Completado!" : "Listo"}
             </span>
             {timerState !== "idle" && timerState !== "finished" && (
-              <span className="text-[11px] text-white/50 font-bold mt-1 bg-white/10 px-2 py-0.5 rounded-full border border-white/5">
+              <span className="text-[11px] text-white/50 font-bold mt-1 bg-[var(--bg2)] px-2 py-0.5 rounded-full border border-white/10">
                 Ciclo {currentCycle}/{cycles}
               </span>
             )}
@@ -402,7 +402,7 @@ function PomodoroContent() {
         </div>
 
         {/* Configuration */}
-        <div className="w-full p-[20px] rounded-[24px] bg-white/5 border border-white/10 space-y-[16px] mb-[24px]">
+        <div className="w-full p-[20px] rounded-[24px] bg-[var(--bg2)] border border-white/10 space-y-[16px] mb-[24px]">
           <h3 className="text-[18px] font-bold text-center">Configuración</h3>
 
           <div className="space-y-[8px]">
@@ -421,7 +421,7 @@ function PomodoroContent() {
                 }
               }}
               disabled={timerState !== "idle"}
-              className="h-[48px] bg-white/5 border-white/10 text-white text-center text-[18px] font-bold rounded-[16px]"
+              className="h-[48px] bg-[var(--bg1)] border-white/10 text-white text-center text-[18px] font-bold rounded-[16px]"
             />
           </div>
 
@@ -434,7 +434,7 @@ function PomodoroContent() {
               value={breakMinutes}
               onChange={(e) => setBreakMinutes(parseInt(e.target.value) || 5)}
               disabled={timerState !== "idle"}
-              className="h-[48px] bg-white/5 border-white/10 text-white text-center text-[18px] font-bold rounded-[16px]"
+              className="h-[48px] bg-[var(--bg1)] border-white/10 text-white text-center text-[18px] font-bold rounded-[16px]"
             />
           </div>
 
@@ -447,7 +447,7 @@ function PomodoroContent() {
               value={cycles}
               onChange={(e) => setCycles(parseInt(e.target.value) || 4)}
               disabled={timerState !== "idle"}
-              className="h-[48px] bg-white/5 border-white/10 text-white text-center text-[18px] font-bold rounded-[16px]"
+              className="h-[48px] bg-[var(--bg1)] border-white/10 text-white text-center text-[18px] font-bold rounded-[16px]"
             />
           </div>
 
@@ -458,7 +458,7 @@ function PomodoroContent() {
                 value={selectedHabitId ?? ""}
                 onChange={(e) => setSelectedHabitId(e.target.value ? Number(e.target.value) : null)}
                 disabled={timerState !== "idle"}
-                className="w-full h-[48px] rounded-[16px] bg-white/5 border border-white/10 text-white text-[14px] font-bold px-4 disabled:opacity-50"
+                className="w-full h-[48px] rounded-[16px] bg-[var(--bg1)] border border-white/10 text-white text-[14px] font-bold px-4 disabled:opacity-50"
               >
                 <option value="">Sin hábito</option>
                 {timeHabits.map((h) => (
@@ -487,7 +487,7 @@ function PomodoroContent() {
               Comenzar
             </Button>
           ) : timerState === "finished" ? (
-            <div className="w-full p-[24px] rounded-[24px] bg-white/5 border border-white/10 text-center space-y-4">
+            <div className="w-full p-[24px] rounded-[24px] bg-[var(--bg2)] border border-white/10 text-center space-y-4">
               <Trophy className="size-16 mx-auto animate-bounce" style={{ color: "#FBBF24" }} />
               <div className="space-y-1">
                 <p className="text-[20px] font-bold text-white">¡Sesión Completada!</p>
@@ -529,7 +529,7 @@ function PomodoroContent() {
               </Button>
               <Button
                 onClick={stopTimer}
-                className="w-full bg-white/5 hover:bg-red-500/20 text-white border-white/10 hover:border-red-500/30"
+                className="w-full bg-[var(--bg3)] hover:bg-red-500/20 text-white border-white/10 hover:border-red-500/30"
                 size="lg"
                 variant="sacro-ghost"
               >
@@ -541,7 +541,7 @@ function PomodoroContent() {
         </div>
 
         {/* Recent Sessions */}
-        <div className="mt-[24px] w-full p-[20px] rounded-[24px] bg-white/5 border border-white/10 space-y-[12px]">
+        <div className="mt-[24px] w-full p-[20px] rounded-[24px] bg-[var(--bg2)] border border-white/10 space-y-[12px]">
           <div className="flex items-center justify-between">
             <h3 className="text-[16px] font-bold text-white">Sesiones recientes</h3>
             <button
@@ -566,7 +566,7 @@ function PomodoroContent() {
               {recentSessions.map((session) => (
                 <div
                   key={session.id}
-                  className="flex items-center justify-between rounded-[16px] border border-white/5 bg-white/5 px-[16px] py-[12px]"
+                  className="flex items-center justify-between rounded-[16px] border border-white/10 bg-[var(--bg1)] px-[16px] py-[12px]"
                 >
                   <div>
                     <p className="text-[14px] font-bold text-white leading-tight mb-1">

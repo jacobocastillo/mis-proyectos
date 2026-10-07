@@ -11,7 +11,7 @@ import re
 from flask import Blueprint, current_app, jsonify, request
 from sqlalchemy import text
 
-from app.config import describe_openai_configuration
+from app.config import describe_image_validation_configuration
 from app.extensions import db
 from app.models.habit import Category, Habit
 
@@ -87,7 +87,7 @@ def readyz():
                     "checks": {
                         "database": {"ready": False},
                         "catalog": {"ready": False},
-                        "validation": describe_openai_configuration(current_app.config),
+                        "validation": describe_image_validation_configuration(current_app.config),
                     },
                 }
             ),
@@ -108,7 +108,7 @@ def readyz():
                         "categories": categories,
                         "habits": habits,
                     },
-                    "validation": describe_openai_configuration(current_app.config),
+                    "validation": describe_image_validation_configuration(current_app.config),
                 },
             }
         ),

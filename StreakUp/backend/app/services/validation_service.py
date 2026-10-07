@@ -13,6 +13,7 @@ from datetime import date as date_type, datetime, timezone
 
 from flask import current_app
 
+from app.config import get_image_validation_provider
 from app.extensions import db
 from app.models.checkin import CheckIn
 from app.models.user_habit import UserHabit
@@ -176,7 +177,7 @@ def validate_habit(
             if not image_base64:
                 raise ValueError("image (base64) is required for photo validation.")
                 
-            evidence_metadata["provider"] = "openai"
+            evidence_metadata["provider"] = get_image_validation_provider(current_app.config)
             evidence_metadata["mime_type"] = mime_type or "image/jpeg"
             evidence_metadata["image_sha256"] = hashlib.sha256(image_base64.encode("utf-8")).hexdigest()
             

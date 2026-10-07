@@ -37,6 +37,7 @@ class XpConsistencyTestCase(unittest.TestCase):
                 "DEBUG": False,
                 "TESTING": True,
                 "ENVIRONMENT": "test",
+                "OPENAI_API_KEY": "test-openai-key",
             },
         )
 

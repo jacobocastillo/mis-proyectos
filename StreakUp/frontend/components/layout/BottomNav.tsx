@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { BarChart3, House, ListChecks, UserRound } from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "/", emoji: "🏠", label: "Inicio" },
-  { href: "/habits", emoji: "✅", label: "Hábitos" },
-  { href: "/stats", emoji: "📊", label: "Stats" },
-  { href: "/profile", emoji: "👤", label: "Perfil" },
+  { href: "/", icon: House, label: "Inicio" },
+  { href: "/habits", icon: ListChecks, label: "Hábitos" },
+  { href: "/stats", icon: BarChart3, label: "Stats" },
+  { href: "/profile", icon: UserRound, label: "Perfil" },
 ];
 
 export function BottomNav() {
@@ -19,7 +20,7 @@ export function BottomNav() {
   }
 
   return (
-    <nav aria-label="Navegación principal" className="absolute bottom-0 left-0 right-0 bg-[#1c0f3d]/80 backdrop-blur-xl border-t border-white/20 grid grid-cols-4 z-20" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)", height: "calc(82px + env(safe-area-inset-bottom, 0px))" }}>
+    <nav aria-label="Navegación principal" className="absolute bottom-0 left-0 right-0 bg-[#1d0b86] border-t border-white/15 grid grid-cols-4 z-20" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)", height: "calc(82px + env(safe-area-inset-bottom, 0px))" }}>
       {NAV_ITEMS.map((item) => {
         const isActive =
           item.href === "/"
@@ -31,14 +32,12 @@ export function BottomNav() {
             key={item.href}
             href={item.href}
             aria-current={isActive ? "page" : undefined}
-            className={`flex flex-col items-center justify-center font-extrabold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 rounded-sm ${
-              isActive ? "text-white" : "text-white/60"
+            className={`flex flex-col items-center justify-center gap-1 font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 rounded-sm ${
+              isActive ? "text-[#ffe536]" : "text-white/65 hover:text-white"
             }`}
           >
-            <span className="block text-[27px] mb-1 leading-none" aria-hidden="true">
-              {item.emoji}
-            </span>
-            <span className="text-xs">{item.label}</span>
+            <item.icon className="size-[21px]" aria-hidden="true" strokeWidth={2.2} />
+            <span className="text-[11px]">{item.label}</span>
           </Link>
         );
       })}
