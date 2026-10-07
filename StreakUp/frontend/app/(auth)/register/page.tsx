@@ -66,7 +66,7 @@ export default function RegisterPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 disabled={isLoading}
-                className="w-full h-[54px] rounded-[14px] border border-white/15 bg-[#27125e] text-white text-[16px] px-[16px] outline-none placeholder:text-white/45 focus-visible:ring-2 focus-visible:ring-[var(--yellow)]"
+                className="w-full h-[54px] rounded-[14px] border border-white/20 bg-[var(--bg1)] text-white text-[16px] px-[16px] outline-none placeholder:text-white/65 focus-visible:ring-2 focus-visible:ring-[var(--yellow)]"
               />
             </div>
 
@@ -80,7 +80,7 @@ export default function RegisterPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
-                className="w-full h-[54px] rounded-[14px] border border-white/15 bg-[#27125e] text-white text-[16px] px-[16px] outline-none placeholder:text-white/45 focus-visible:ring-2 focus-visible:ring-[var(--yellow)]"
+                className="w-full h-[54px] rounded-[14px] border border-white/20 bg-[var(--bg1)] text-white text-[16px] px-[16px] outline-none placeholder:text-white/65 focus-visible:ring-2 focus-visible:ring-[var(--yellow)]"
               />
             </div>
 
@@ -94,7 +94,7 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
-                className="w-full h-[54px] rounded-[14px] border border-white/15 bg-[#27125e] text-white text-[16px] px-[16px] outline-none placeholder:text-white/45 focus-visible:ring-2 focus-visible:ring-[var(--yellow)]"
+                className="w-full h-[54px] rounded-[14px] border border-white/20 bg-[var(--bg1)] text-white text-[16px] px-[16px] outline-none placeholder:text-white/65 focus-visible:ring-2 focus-visible:ring-[var(--yellow)]"
               />
             </div>
 
@@ -108,7 +108,7 @@ export default function RegisterPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 disabled={isLoading}
-                className="w-full h-[54px] rounded-[14px] border border-white/15 bg-[#27125e] text-white text-[16px] px-[16px] outline-none placeholder:text-white/45 focus-visible:ring-2 focus-visible:ring-[var(--yellow)]"
+                className="w-full h-[54px] rounded-[14px] border border-white/20 bg-[var(--bg1)] text-white text-[16px] px-[16px] outline-none placeholder:text-white/65 focus-visible:ring-2 focus-visible:ring-[var(--yellow)]"
               />
             </div>
             

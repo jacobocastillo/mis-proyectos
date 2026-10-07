@@ -18,10 +18,10 @@ import type { PomodoroSession } from "@/types/pomodoro";
 import type { Habit } from "@/types/habits";
 
 const THEMES = {
-  fire: { label: "Fuego", background: "#1d0b86", accent: "#F97316" },
-  candle: { label: "Vela", background: "#4f22d9", accent: "#A855F7" },
-  ice: { label: "Hielo", background: "#05245e", accent: "#3B82F6" },
-  hourglass: { label: "Reloj", background: "#17113a", accent: "#D97706" },
+  fire: { label: "Fuego", background: "#15132b", accent: "#ff9d6c" },
+  candle: { label: "Vela", background: "#211e40", accent: "#b3aaff" },
+  ice: { label: "Hielo", background: "#10263a", accent: "#72cbe0" },
+  hourglass: { label: "Reloj", background: "#11131d", accent: "#ffd66b" },
 };
 
 type ThemeKey = keyof typeof THEMES;

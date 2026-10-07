@@ -20,7 +20,7 @@ export function BottomNav() {
   }
 
   return (
-    <nav aria-label="Navegación principal" className="absolute bottom-0 left-0 right-0 bg-[#1d0b86] border-t border-white/15 grid grid-cols-4 z-20" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)", height: "calc(82px + env(safe-area-inset-bottom, 0px))" }}>
+    <nav aria-label="Navegación principal" className="absolute bottom-0 left-0 right-0 bg-[var(--bg2)] border-t border-white/15 grid grid-cols-4 z-20" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)", height: "calc(82px + env(safe-area-inset-bottom, 0px))" }}>
       {NAV_ITEMS.map((item) => {
         const isActive =
           item.href === "/"
@@ -33,7 +33,7 @@ export function BottomNav() {
             href={item.href}
             aria-current={isActive ? "page" : undefined}
             className={`flex flex-col items-center justify-center gap-1 font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 rounded-sm ${
-              isActive ? "text-[#ffe536]" : "text-white/65 hover:text-white"
+              isActive ? "text-[var(--yellow)]" : "text-white/70 hover:text-white"
             }`}
           >
             <item.icon className="size-[21px]" aria-hidden="true" strokeWidth={2.2} />

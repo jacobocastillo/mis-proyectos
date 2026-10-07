@@ -201,7 +201,7 @@ export default function HabitsPage() {
                       {difficultyLabel}
                     </span>
                     {habit.xp_base != null ? (
-                      <span className="px-[8px] py-[2px] rounded-full text-[10px] font-bold bg-[#9d55ff]/30 text-[#9d55ff]">
+                      <span className="px-[8px] py-[2px] rounded-full text-[10px] font-bold bg-[var(--purple)]/20 text-[var(--purple2)]">
                         {habit.xp_base} XP
                       </span>
                     ) : null}
