@@ -217,6 +217,9 @@ def _request_gemini_image_analysis(
             "mime_type": "application/json",
             "schema": response_schema,
         },
+        "generation_config": {
+            "thinking_level": "low",
+        },
     }
     request = Request(
         "https://generativelanguage.googleapis.com/v1beta/interactions",
@@ -229,7 +232,7 @@ def _request_gemini_image_analysis(
     )
 
     try:
-        with urlopen(request, timeout=20.0) as response:
+        with urlopen(request, timeout=60.0) as response:
             response_data = json.loads(response.read())
     except HTTPError as exc:
         try:

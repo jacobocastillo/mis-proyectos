@@ -153,6 +153,7 @@ class OperationalReadinessTestCase(unittest.TestCase):
             result = analyze_habit_image("Meditar", "aGVsbG8=", "image/jpeg")
 
         request = urlopen.call_args.args[0]
+        self.assertEqual(urlopen.call_args.kwargs["timeout"], 60.0)
         request_body = json.loads(request.data)
         self.assertEqual(
             request.full_url,
@@ -176,6 +177,10 @@ class OperationalReadinessTestCase(unittest.TestCase):
         self.assertEqual(
             request_body["response_format"]["mime_type"],
             "application/json",
+        )
+        self.assertEqual(
+            request_body["generation_config"]["thinking_level"],
+            "low",
         )
 
     def test_gemini_quota_error_uses_stable_validation_code(self) -> None:
