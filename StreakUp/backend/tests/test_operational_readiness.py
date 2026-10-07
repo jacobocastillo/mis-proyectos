@@ -137,13 +137,18 @@ class OperationalReadinessTestCase(unittest.TestCase):
         response = MagicMock()
         response.__enter__.return_value.read.return_value = json.dumps(
             {
-                "outputs": [
+                "steps": [
                     {
-                        "type": "text",
-                        "text": (
-                            '{"valido":true,"razon":"Evidencia válida.",'
-                            '"confianza":0.9}'
-                        ),
+                        "type": "model_output",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": (
+                                    '{"valido":true,"razon":"Evidencia válida.",'
+                                    '"confianza":0.9}'
+                                ),
+                            }
+                        ],
                     }
                 ]
             }
@@ -177,6 +182,27 @@ class OperationalReadinessTestCase(unittest.TestCase):
         self.assertEqual(
             request_body["response_format"]["mime_type"],
             "application/json",
+        )
+
+    def test_gemini_image_request_rejects_response_without_model_output_text(self) -> None:
+        self.app.config["GEMINI_API_KEY"] = "test-gemini-key"
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = json.dumps(
+            {"steps": [{"type": "function_call", "name": "unexpected"}]}
+        ).encode("utf-8")
+
+        with (
+            patch("app.services.openai_service.urlopen", return_value=response),
+            patch("app.services.openai_service.current_app.logger.warning") as warning,
+        ):
+            with self.assertRaises(ValidationUnavailableError) as raised:
+                analyze_habit_image("Meditar", "aGVsbG8=", "image/jpeg")
+
+        self.assertEqual(raised.exception.code, VALIDATION_PROVIDER_UNAVAILABLE_CODE)
+        warning.assert_called_once_with(
+            "Gemini image validation response did not contain model output text "
+            "(response fields: %s).",
+            ["steps"],
         )
 
     def test_gemini_quota_error_uses_stable_validation_code(self) -> None:

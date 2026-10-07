@@ -268,23 +268,58 @@ def _request_gemini_image_analysis(
             VALIDATION_PROVIDER_UNAVAILABLE_CODE,
         ) from exc
 
-    try:
-        output_text = response_data.get("output_text")
-        if isinstance(output_text, str) and output_text.strip():
+    output_text = response_data.get("output_text") if isinstance(response_data, dict) else None
+    if isinstance(output_text, str) and output_text.strip():
+        return output_text
+
+    steps = response_data.get("steps") if isinstance(response_data, dict) else None
+    text_parts: list[str] = []
+    collecting_text = False
+    if isinstance(steps, list):
+        for step in reversed(steps):
+            if not isinstance(step, dict):
+                continue
+            step_type = step.get("type")
+            if step_type == "user_input":
+                break
+            if step_type != "model_output":
+                if collecting_text:
+                    break
+                continue
+
+            content = step.get("content")
+            if not isinstance(content, list):
+                if collecting_text:
+                    break
+                continue
+
+            stop_collecting = False
+            for item in reversed(content):
+                if isinstance(item, dict) and item.get("type") == "text":
+                    collecting_text = True
+                    text = item.get("text")
+                    text_parts.append(text if isinstance(text, str) else "")
+                elif collecting_text:
+                    stop_collecting = True
+                    break
+            if stop_collecting:
+                break
+
+    if text_parts:
+        output_text = "".join(reversed(text_parts))
+        if output_text.strip():
             return output_text
 
-        outputs = response_data["outputs"]
-        return "".join(
-            str(item["text"])
-            for item in outputs
-            if isinstance(item, dict) and item.get("type") == "text" and "text" in item
-        )
-    except (KeyError, IndexError, TypeError) as exc:
-        current_app.logger.warning("Gemini image validation response did not contain candidate text.")
-        raise ValidationUnavailableError(
-            "La validación de fotos no está disponible temporalmente.",
-            VALIDATION_PROVIDER_UNAVAILABLE_CODE,
-        ) from exc
+    response_fields = sorted(response_data) if isinstance(response_data, dict) else []
+    current_app.logger.warning(
+        "Gemini image validation response did not contain model output text "
+        "(response fields: %s).",
+        response_fields,
+    )
+    raise ValidationUnavailableError(
+        "La validación de fotos no está disponible temporalmente.",
+        VALIDATION_PROVIDER_UNAVAILABLE_CODE,
+    )
 
 
 def _parse_ai_json_response(raw_content: object) -> dict:
