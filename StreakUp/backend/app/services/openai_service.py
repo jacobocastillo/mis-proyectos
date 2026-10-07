@@ -200,29 +200,32 @@ def _request_gemini_image_analysis(
         "required": ["valido", "razon", "confianza"],
     }
     request_body = {
-        "model": "gemini-3.8-flash",
-        "input": [
+        "contents": [
             {
-                "type": "text",
-                "text": prompt,
-            },
-            {
-                "type": "image",
-                "mime_type": mime_type,
-                "data": image_base64,
+                "parts": [
+                    {"text": prompt},
+                    {
+                        "inlineData": {
+                            "mimeType": mime_type,
+                            "data": image_base64,
+                        }
+                    },
+                ]
             },
         ],
-        "response_format": {
-            "type": "text",
-            "mime_type": "application/json",
-            "schema": response_schema,
-        },
-        "generation_config": {
-            "thinking_level": "low",
+        "generationConfig": {
+            "temperature": 0.2,
+            "responseMimeType": "application/json",
+            "responseSchema": response_schema,
+            "maxOutputTokens": 300,
+            "thinkingConfig": {
+                "thinkingBudget": 0,
+            },
         },
     }
     request = Request(
-        "https://generativelanguage.googleapis.com/v1beta/interactions",
+        "https://generativelanguage.googleapis.com/v1beta/models/"
+        "gemini-2.5-flash-lite:generateContent",
         data=json.dumps(request_body).encode("utf-8"),
         headers={
             "Content-Type": "application/json",
@@ -272,16 +275,8 @@ def _request_gemini_image_analysis(
         ) from exc
 
     try:
-        output_text = response_data.get("output_text")
-        if isinstance(output_text, str) and output_text.strip():
-            return output_text
-
-        outputs = response_data["outputs"]
-        return "".join(
-            str(item["text"])
-            for item in outputs
-            if isinstance(item, dict) and item.get("type") == "text" and "text" in item
-        )
+        parts = response_data["candidates"][0]["content"]["parts"]
+        return "".join(str(part["text"]) for part in parts if "text" in part)
     except (KeyError, IndexError, TypeError) as exc:
         current_app.logger.warning("Gemini image validation response did not contain candidate text.")
         raise ValidationUnavailableError(
