@@ -51,6 +51,24 @@ def get_metadata():
     return target_db.metadata
 
 
+def ensure_version_table_capacity(connection):
+    if connection.dialect.name != "postgresql":
+        return
+
+    with connection.begin():
+        connection.exec_driver_sql(
+            """
+            CREATE TABLE IF NOT EXISTS alembic_version (
+                version_num VARCHAR(128) NOT NULL PRIMARY KEY
+            )
+            """
+        )
+        connection.exec_driver_sql(
+            "ALTER TABLE alembic_version "
+            "ALTER COLUMN version_num TYPE VARCHAR(128)"
+        )
+
+
 def run_migrations_offline():
     """Run migrations in 'offline' mode.
 
@@ -97,6 +115,7 @@ def run_migrations_online():
     connectable = get_engine()
 
     with connectable.connect() as connection:
+        ensure_version_table_capacity(connection)
         context.configure(
             connection=connection,
             target_metadata=get_metadata(),
