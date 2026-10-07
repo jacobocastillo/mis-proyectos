@@ -162,7 +162,7 @@ def validate_runtime_secrets(config: Mapping[str, object]) -> None:
 
 
 def is_openai_configured(config: Mapping[str, object]) -> bool:
-    """Return True when photo validation has a configured provider key."""
+    """Return True when OpenAI is configured for supported AI validation."""
     return bool(str(config.get("OPENAI_API_KEY") or "").strip())
 
 
@@ -173,6 +173,34 @@ def get_image_validation_provider(config: Mapping[str, object]) -> str | None:
     if is_openai_configured(config):
         return "openai"
     return None
+
+
+def get_text_validation_provider(config: Mapping[str, object]) -> str | None:
+    """Prefer Gemini for text validation when configured, otherwise use OpenAI."""
+    if str(config.get("GEMINI_API_KEY") or "").strip():
+        return "gemini"
+    if is_openai_configured(config):
+        return "openai"
+    return None
+
+
+def describe_text_validation_configuration(config: Mapping[str, object]) -> dict[str, object]:
+    """Describe text-validation configuration without exposing provider credentials."""
+    provider = get_text_validation_provider(config)
+    if provider is None:
+        return {
+            "provider": None,
+            "configured": False,
+            "status": "not_configured",
+            "message": "Configura GEMINI_API_KEY u OPENAI_API_KEY para habilitar la validación de texto con IA.",
+        }
+
+    return {
+        "provider": provider,
+        "configured": True,
+        "status": "configured_unverified",
+        "message": f"La clave de {provider} está configurada; el proveedor se verifica al validar un texto.",
+    }
 
 
 def describe_image_validation_configuration(config: Mapping[str, object]) -> dict[str, object]:

@@ -17,6 +17,7 @@ from app.services.openai_service import (
     VALIDATION_PROVIDER_UNAVAILABLE_CODE,
     ValidationUnavailableError,
     analyze_habit_image,
+    analyze_habit_text,
 )
 
 
@@ -114,6 +115,15 @@ class OperationalReadinessTestCase(unittest.TestCase):
                 "message": "Configura GEMINI_API_KEY u OPENAI_API_KEY para habilitar la validación de fotos.",
             },
         )
+        self.assertEqual(
+            payload["checks"]["text_validation"],
+            {
+                "provider": None,
+                "configured": False,
+                "status": "not_configured",
+                "message": "Configura GEMINI_API_KEY u OPENAI_API_KEY para habilitar la validación de texto con IA.",
+            },
+        )
 
     def test_readyz_reports_gemini_as_the_image_validation_provider(self) -> None:
         self._seed_catalog()
@@ -131,6 +141,76 @@ class OperationalReadinessTestCase(unittest.TestCase):
                 "message": "La clave de gemini está configurada; el proveedor se verifica al validar una imagen.",
             },
         )
+        self.assertEqual(
+            response.get_json()["checks"]["text_validation"],
+            {
+                "provider": "gemini",
+                "configured": True,
+                "status": "configured_unverified",
+                "message": "La clave de gemini está configurada; el proveedor se verifica al validar un texto.",
+            },
+        )
+
+    def test_gemini_text_request_sends_key_and_parses_interaction_output(self) -> None:
+        self.app.config["GEMINI_API_KEY"] = "test-gemini-key"
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = json.dumps(
+            {
+                "steps": [
+                    {
+                        "type": "model_output",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": (
+                                    '{"valido":true,"razon":"Describiste tu práctica.",'
+                                    '"confianza":0.92}'
+                                ),
+                            }
+                        ],
+                    }
+                ]
+            }
+        ).encode("utf-8")
+
+        with patch("app.services.openai_service.urlopen", return_value=response) as urlopen:
+            result = analyze_habit_text("Leer", "Leí 20 páginas de una novela.")
+
+        request = urlopen.call_args.args[0]
+        request_body = json.loads(request.data)
+        self.assertEqual(
+            request.full_url,
+            "https://generativelanguage.googleapis.com/v1beta/interactions",
+        )
+        self.assertEqual(urlopen.call_args.kwargs["timeout"], 30.0)
+        self.assertEqual(request.get_header("X-goog-api-key"), "test-gemini-key")
+        self.assertNotIn("test-gemini-key", request.full_url)
+        self.assertEqual(request_body["model"], "gemini-3.5-flash-lite")
+        self.assertIn("Leí 20 páginas de una novela.", request_body["input"][0]["text"])
+        self.assertEqual(
+            result,
+            {
+                "valido": True,
+                "razon": "Describiste tu práctica.",
+                "confianza": 0.92,
+            },
+        )
+
+    def test_gemini_text_request_maps_provider_quota_error(self) -> None:
+        self.app.config["GEMINI_API_KEY"] = "test-gemini-key"
+        error = HTTPError(
+            "https://generativelanguage.googleapis.com/",
+            429,
+            "quota exceeded",
+            {},
+            None,
+        )
+
+        with patch("app.services.openai_service.urlopen", side_effect=error):
+            with self.assertRaises(ValidationUnavailableError) as raised:
+                analyze_habit_text("Leer", "Leí 20 páginas de una novela.")
+
+        self.assertEqual(raised.exception.code, VALIDATION_QUOTA_EXCEEDED_CODE)
 
     def test_gemini_image_request_sends_key_in_header_and_parses_result(self) -> None:
         self.app.config["GEMINI_API_KEY"] = "test-gemini-key"
@@ -267,6 +347,15 @@ class OperationalReadinessTestCase(unittest.TestCase):
                 "configured": True,
                 "status": "configured_unverified",
                 "message": "La clave de openai está configurada; el proveedor se verifica al validar una imagen.",
+            },
+        )
+        self.assertEqual(
+            response.get_json()["checks"]["text_validation"],
+            {
+                "provider": "openai",
+                "configured": True,
+                "status": "configured_unverified",
+                "message": "La clave de openai está configurada; el proveedor se verifica al validar un texto.",
             },
         )
 

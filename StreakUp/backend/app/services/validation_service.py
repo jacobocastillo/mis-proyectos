@@ -13,7 +13,7 @@ from datetime import date as date_type, datetime, timezone
 
 from flask import current_app
 
-from app.config import get_image_validation_provider
+from app.config import get_image_validation_provider, get_text_validation_provider
 from app.extensions import db
 from app.models.checkin import CheckIn
 from app.models.user_habit import UserHabit
@@ -228,7 +228,7 @@ def validate_habit(
             db.session.flush()
 
             if val_type == "text_ai":
-                evidence_metadata["provider"] = "openai"
+                evidence_metadata["provider"] = get_text_validation_provider(current_app.config)
                 try:
                     habit_name = user_habit.nombre_personalizado or user_habit.habit.nombre
                     ai_result = analyze_habit_text(habit_name, text_content)

@@ -1,8 +1,8 @@
 """
-OpenAI service module.
+AI service module.
 
 Responsibility:
-- Interact with OpenAI Vision API to analyze habit evidence images.
+- Use Gemini or OpenAI to analyze habit evidence.
 """
 
 import base64
@@ -14,7 +14,11 @@ from flask import current_app
 import openai
 from openai import OpenAI
 
-from app.config import get_image_validation_provider, is_openai_configured
+from app.config import (
+    get_image_validation_provider,
+    get_text_validation_provider,
+    is_openai_configured,
+)
 
 VALIDATION_NOT_CONFIGURED_CODE = "validation_not_configured"
 VALIDATION_PROVIDER_UNAVAILABLE_CODE = "validation_provider_unavailable"
@@ -232,29 +236,7 @@ def _request_gemini_image_analysis(
         with urlopen(request, timeout=60.0) as response:
             response_data = json.loads(response.read())
     except HTTPError as exc:
-        try:
-            error_response = json.loads(exc.read().decode("utf-8"))
-            provider_message = str(
-                error_response.get("error", {}).get("message", "")
-            ).replace(api_key, "[redacted]")[:300]
-        except (AttributeError, UnicodeDecodeError, json.JSONDecodeError):
-            provider_message = ""
-
-        if exc.code in {400, 401, 403}:
-            code = VALIDATION_AUTH_ERROR_CODE
-            message = "La llave de Gemini es inválida o no tiene acceso al modelo."
-        elif exc.code == 429:
-            code = VALIDATION_QUOTA_EXCEEDED_CODE
-            message = "Se han agotado los créditos o la cuota de Gemini."
-        else:
-            code = VALIDATION_PROVIDER_UNAVAILABLE_CODE
-            message = "La validación de fotos no está disponible temporalmente."
-        current_app.logger.warning(
-            "Gemini image validation returned HTTP %s: %s",
-            exc.code,
-            provider_message or "no provider detail",
-        )
-        raise ValidationUnavailableError(message, code) from exc
+        _raise_gemini_http_error(exc, api_key, "image")
     except (URLError, TimeoutError, OSError) as exc:
         current_app.logger.warning("Gemini image validation request failed.")
         raise ValidationUnavailableError(
@@ -268,6 +250,42 @@ def _request_gemini_image_analysis(
             VALIDATION_PROVIDER_UNAVAILABLE_CODE,
         ) from exc
 
+    return _extract_gemini_output_text(response_data, "image")
+
+
+def _raise_gemini_http_error(exc: HTTPError, api_key: str, validation_kind: str) -> None:
+    try:
+        error_response = json.loads(exc.read().decode("utf-8"))
+        provider_message = str(
+            error_response.get("error", {}).get("message", "")
+        ).replace(api_key, "[redacted]")[:300]
+    except (AttributeError, UnicodeDecodeError, json.JSONDecodeError):
+        provider_message = ""
+
+    if exc.code in {400, 401, 403}:
+        code = VALIDATION_AUTH_ERROR_CODE
+        message = "La llave de Gemini es inválida o no tiene acceso al modelo."
+    elif exc.code == 429:
+        code = VALIDATION_QUOTA_EXCEEDED_CODE
+        content_label = "fotos" if validation_kind == "image" else "texto"
+        message = f"Se han agotado los créditos o la cuota de Gemini para validar {content_label}."
+    else:
+        code = VALIDATION_PROVIDER_UNAVAILABLE_CODE
+        content_label = "fotos" if validation_kind == "image" else "texto"
+        message = f"La validación de {content_label} no está disponible temporalmente."
+    current_app.logger.warning(
+        (
+            "Gemini image validation returned HTTP %s: %s"
+            if validation_kind == "image"
+            else "Gemini text validation returned HTTP %s: %s"
+        ),
+        exc.code,
+        provider_message or "no provider detail",
+    )
+    raise ValidationUnavailableError(message, code) from exc
+
+
+def _extract_gemini_output_text(response_data: object, validation_kind: str) -> str:
     output_text = response_data.get("output_text") if isinstance(response_data, dict) else None
     if isinstance(output_text, str) and output_text.strip():
         return output_text
@@ -312,12 +330,16 @@ def _request_gemini_image_analysis(
 
     response_fields = sorted(response_data) if isinstance(response_data, dict) else []
     current_app.logger.warning(
-        "Gemini image validation response did not contain model output text "
+        f"Gemini {validation_kind} validation response did not contain model output text "
         "(response fields: %s).",
         response_fields,
     )
     raise ValidationUnavailableError(
-        "La validación de fotos no está disponible temporalmente.",
+        (
+            "La validación de fotos no está disponible temporalmente."
+            if validation_kind == "image"
+            else "La validación de texto no está disponible temporalmente."
+        ),
         VALIDATION_PROVIDER_UNAVAILABLE_CODE,
     )
 
@@ -354,18 +376,18 @@ def _parse_ai_json_response(raw_content: object) -> dict:
 
 
 def analyze_habit_text(habit_name: str, text_content: str) -> dict:
-    """Analyze text using OpenAI to validate a habit.
+    """Analyze text with the configured AI provider to validate a habit.
 
     Returns:
         dict with keys: valido (bool), razon (str), confianza (float).
     """
-    if not is_openai_configured(current_app.config):
+    provider = get_text_validation_provider(current_app.config)
+    if provider is None:
         raise ValidationUnavailableError(
             "La validación de texto no está disponible en este entorno.",
             VALIDATION_NOT_CONFIGURED_CODE,
         )
 
-    api_key = str(current_app.config.get("OPENAI_API_KEY") or "").strip()
     prompt = (
         "Eres un sistema que valida evidencia textual de hábitos.\n\n"
         f"Hábito: {habit_name}\n\n"
@@ -383,6 +405,57 @@ def analyze_habit_text(habit_name: str, text_content: str) -> dict:
         "- Responde ÚNICAMENTE con el JSON, sin texto adicional."
     )
 
+    if provider == "gemini":
+        api_key = str(current_app.config.get("GEMINI_API_KEY") or "").strip()
+        response_schema = {
+            "type": "object",
+            "properties": {
+                "valido": {"type": "boolean"},
+                "razon": {"type": "string"},
+                "confianza": {"type": "number"},
+            },
+            "required": ["valido", "razon", "confianza"],
+        }
+        request = Request(
+            "https://generativelanguage.googleapis.com/v1beta/interactions",
+            data=json.dumps(
+                {
+                    "model": "gemini-3.5-flash-lite",
+                    "input": [{"type": "text", "text": prompt}],
+                    "response_format": {
+                        "type": "text",
+                        "mime_type": "application/json",
+                        "schema": response_schema,
+                    },
+                }
+            ).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "x-goog-api-key": api_key,
+            },
+            method="POST",
+        )
+        try:
+            with urlopen(request, timeout=30.0) as response:
+                response_data = json.loads(response.read())
+        except HTTPError as exc:
+            _raise_gemini_http_error(exc, api_key, "text")
+        except (URLError, TimeoutError, OSError) as exc:
+            current_app.logger.warning("Gemini text validation request failed.")
+            raise ValidationUnavailableError(
+                "La validación de texto no está disponible temporalmente.",
+                VALIDATION_PROVIDER_UNAVAILABLE_CODE,
+            ) from exc
+        except json.JSONDecodeError as exc:
+            current_app.logger.warning("Gemini text validation returned invalid response JSON.")
+            raise ValidationUnavailableError(
+                "La validación de texto no está disponible temporalmente.",
+                VALIDATION_PROVIDER_UNAVAILABLE_CODE,
+            ) from exc
+
+        return _parse_ai_json_response(_extract_gemini_output_text(response_data, "text"))
+
+    api_key = str(current_app.config.get("OPENAI_API_KEY") or "").strip()
     try:
         client = OpenAI(api_key=api_key, timeout=20.0)
         response = client.chat.completions.create(

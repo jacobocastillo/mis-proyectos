@@ -11,7 +11,10 @@ import re
 from flask import Blueprint, current_app, jsonify, request
 from sqlalchemy import text
 
-from app.config import describe_image_validation_configuration
+from app.config import (
+    describe_image_validation_configuration,
+    describe_text_validation_configuration,
+)
 from app.extensions import db
 from app.models.habit import Category, Habit
 
@@ -88,6 +91,7 @@ def readyz():
                         "database": {"ready": False},
                         "catalog": {"ready": False},
                         "validation": describe_image_validation_configuration(current_app.config),
+                        "text_validation": describe_text_validation_configuration(current_app.config),
                     },
                 }
             ),
@@ -109,6 +113,7 @@ def readyz():
                         "habits": habits,
                     },
                     "validation": describe_image_validation_configuration(current_app.config),
+                    "text_validation": describe_text_validation_configuration(current_app.config),
                 },
             }
         ),
