@@ -137,18 +137,13 @@ class OperationalReadinessTestCase(unittest.TestCase):
         response = MagicMock()
         response.__enter__.return_value.read.return_value = json.dumps(
             {
-                "candidates": [
+                "outputs": [
                     {
-                        "content": {
-                            "parts": [
-                                {
-                                    "text": (
-                                        '{"valido":true,"razon":"Evidencia válida.",'
-                                        '"confianza":0.9}'
-                                    )
-                                }
-                            ]
-                        }
+                        "type": "text",
+                        "text": (
+                            '{"valido":true,"razon":"Evidencia válida.",'
+                            '"confianza":0.9}'
+                        ),
                     }
                 ]
             }
@@ -160,18 +155,27 @@ class OperationalReadinessTestCase(unittest.TestCase):
         request = urlopen.call_args.args[0]
         request_body = json.loads(request.data)
         self.assertEqual(
+            request.full_url,
+            "https://generativelanguage.googleapis.com/v1beta/interactions",
+        )
+        self.assertEqual(
             result,
             {"valido": True, "razon": "Evidencia válida.", "confianza": 0.9},
         )
+        self.assertEqual(request_body["model"], "gemini-3.8-flash")
         self.assertEqual(request.get_header("X-goog-api-key"), "test-gemini-key")
         self.assertNotIn("test-gemini-key", request.full_url)
         self.assertEqual(
-            request_body["contents"][0]["parts"][1]["inlineData"]["mimeType"],
+            request_body["input"][1]["mime_type"],
             "image/jpeg",
         )
         self.assertEqual(
-            request_body["contents"][0]["parts"][1]["inlineData"]["data"],
+            request_body["input"][1]["data"],
             "aGVsbG8=",
+        )
+        self.assertEqual(
+            request_body["response_format"]["mime_type"],
+            "application/json",
         )
 
     def test_gemini_quota_error_uses_stable_validation_code(self) -> None:
