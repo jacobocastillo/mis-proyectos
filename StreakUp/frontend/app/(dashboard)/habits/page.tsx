@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Pencil, Trash2, Camera, Check, icons } from "lucide-react";
+import { Plus, Pencil, Trash2, Camera, Check, NotebookPen, icons } from "lucide-react";
 import { fetchHabits, deleteHabit } from "@/services/habits/habitService";
 import { fetchTodayHabits } from "@/services/checkins/checkinService";
 import { fetchSharedGroups } from "@/services/social/socialService";
@@ -237,7 +237,9 @@ export default function HabitsPage() {
                       >
                         {isCheckedToday
                           ? <Check className="size-4" aria-hidden="true" />
-                          : <Camera className="size-4" aria-hidden="true" />}
+                          : habit.validation_type === "texto" || habit.validation_type === "text_ai"
+                            ? <NotebookPen className="size-4" aria-hidden="true" />
+                            : <Camera className="size-4" aria-hidden="true" />}
                       </Link>
                     )}
                     <Link
