@@ -25,6 +25,8 @@ import { getSession } from "@/services/auth/authService";
 import { getPendingOpsCount } from "@/services/sync/syncQueue";
 import { StatCard } from "@/components/ui/StatCard";
 import type { HabitHistoryEvent, HabitHistoryStatus } from "@/types/history";
+import { getCachedApiData, hasFreshApiData } from "@/services/api/queryCache";
+import { API_ENDPOINTS } from "@/services/api/endpoints";
 
 /* ── Types ────────────────────────────────────── */
 
@@ -266,9 +268,9 @@ const RecentHistory = memo(function RecentHistory({ events }: { events: HabitHis
 /* ── Main Page ────────────────────────────────── */
 
 export default function StatsPage() {
-  const [stats, setStats] = useState<StatsData | null>(null);
-  const [historyEvents, setHistoryEvents] = useState<HabitHistoryEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<StatsData | null>(() => getCachedApiData<StatsData>(API_ENDPOINTS.stats.detailed));
+  const [historyEvents, setHistoryEvents] = useState<HabitHistoryEvent[]>(() => getCachedApiData<{items: HabitHistoryEvent[]}>(`${API_ENDPOINTS.checkins.history}?limit=20`)?.items ?? []);
+  const [loading, setLoading] = useState(() => getCachedApiData(API_ENDPOINTS.stats.detailed) === null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [offlinePendingCount, setOfflinePendingCount] = useState(0);
 
@@ -281,11 +283,10 @@ export default function StatsPage() {
         const history = await fetchHabitHistory({ limit: 20 });
         setHistoryEvents(history.items);
       } catch {
-        setHistoryEvents([]);
+        if (!stats) setHistoryEvents([]);
       }
     } catch (error) {
-      setStats(null);
-      setHistoryEvents([]);
+      // Keep the last successful result visible while reporting the refresh error.
       setErrorMessage(
         error instanceof Error && error.message.trim()
           ? error.message
@@ -301,6 +302,11 @@ export default function StatsPage() {
 
   useEffect(() => {
     void fetchStats();
+    const onFocus = () => {
+      if (!hasFreshApiData(API_ENDPOINTS.stats.detailed)) void fetchStats();
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
   }, []);
 
   if (loading) {
@@ -311,7 +317,7 @@ export default function StatsPage() {
     );
   }
 
-  const viewState = getStatsViewState(stats, errorMessage);
+  const viewState = getStatsViewState(stats, stats ? null : errorMessage);
 
   if (viewState.kind === "empty" || viewState.kind === "error") {
     return (
@@ -368,6 +374,7 @@ export default function StatsPage() {
 
   return (
     <div className="space-y-[24px]">
+      {errorMessage && <p role="alert" className="rounded-xl border border-amber-200/40 bg-amber-950/30 px-4 py-3 text-sm text-white">{errorMessage} Se muestran los datos disponibles.</p>}
       {/* Header */}
       <div>
         <h2 className="text-[30px] leading-[1.05] font-bold">Estadísticas</h2>

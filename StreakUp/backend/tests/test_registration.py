@@ -62,6 +62,8 @@ class RegistrationTestCase(unittest.TestCase):
         self.assertEqual(payload["user"]["username"], "Daniel")
         self.assertEqual(payload["user"]["email"], "daniel@correo.com")
         self.assertEqual(payload["user"]["role"], "user")
+        self.assertTrue(payload["access_token"])
+        self.assertTrue(payload["refresh_token"])
         self.assertNotIn("password_hash", payload["user"])
         self.assertEqual(User.query.count(), 1)
 

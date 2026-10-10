@@ -238,8 +238,23 @@ test("register does not block when navigator.onLine is false", async () => {
   globalThis.fetch = async (input, init) => {
     fetchCalls += 1;
 
-    assert.equal(input, "/api/auth/register");
     assert.equal(init?.method, "POST");
+
+    if (input === "/api/auth/login") {
+      return new Response(JSON.stringify({
+        access_token: createValidAccessToken(),
+        refresh_token: "refresh-test",
+        user: {
+          id: 7,
+          username: "alice",
+          email: TEST_EMAIL,
+          role: "user",
+          created_at: "2026-03-27T00:00:00Z",
+        },
+      }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+
+    assert.equal(input, "/api/auth/register");
 
     return new Response(
       JSON.stringify({
@@ -265,7 +280,7 @@ test("register does not block when navigator.onLine is false", async () => {
     password: TEST_PASSWORD,
   });
 
-  assert.equal(fetchCalls, 1);
+  assert.equal(fetchCalls, 2);
   assert.equal(result.user.email, TEST_EMAIL);
 });
 

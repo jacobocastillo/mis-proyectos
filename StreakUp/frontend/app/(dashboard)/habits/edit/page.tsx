@@ -10,6 +10,7 @@ import { ClayMotionBox } from "@/components/ui/clay-motion-box";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { fetchHabit, updateHabit } from "@/services/habits/habitService";
+import { readPageMemory, removePageMemory, writePageMemory } from "@/services/navigation/pageMemory";
 import {
   getHabitTargetSummary,
   FREQUENCY_LABELS,
@@ -36,6 +37,18 @@ const WEEKDAYS = Object.entries(WEEKDAY_LABELS).map(([value, label]) => ({
   value: Number(value),
   label,
 }));
+
+interface EditHabitDraft {
+  customName: string;
+  description: string;
+  frequency: HabitFrequency;
+  targetDuration: string;
+  targetQuantity: string;
+  targetUnit: string;
+  deadlineTime: string;
+  minTextLength: string;
+  scheduleDays: number[];
+}
 
 function EditHabitPageContent() {
   const router = useRouter();
@@ -66,22 +79,23 @@ function EditHabitPageContent() {
 
       try {
         const loadedHabit = await fetchHabit(habitId);
+        const draft = readPageMemory<EditHabitDraft>(`habits/edit/${habitId}`);
         setHabit(loadedHabit);
-        setCustomName(loadedHabit.custom_name ?? "");
-        setDescription(loadedHabit.custom_description ?? "");
-        setFrequency(loadedHabit.frequency);
+        setCustomName(draft?.customName ?? loadedHabit.custom_name ?? "");
+        setDescription(draft?.description ?? loadedHabit.custom_description ?? "");
+        setFrequency(draft?.frequency ?? loadedHabit.frequency);
         setTargetDuration(
-          loadedHabit.target_duration !== null ? String(loadedHabit.target_duration) : "",
+          draft?.targetDuration ?? (loadedHabit.target_duration !== null ? String(loadedHabit.target_duration) : ""),
         );
         setTargetQuantity(
-          loadedHabit.target_quantity !== null ? String(loadedHabit.target_quantity) : "",
+          draft?.targetQuantity ?? (loadedHabit.target_quantity !== null ? String(loadedHabit.target_quantity) : ""),
         );
-        setTargetUnit(loadedHabit.target_unit ?? "");
-        setDeadlineTime(loadedHabit.deadline_time ?? "");
+        setTargetUnit(draft?.targetUnit ?? loadedHabit.target_unit ?? "");
+        setDeadlineTime(draft?.deadlineTime ?? loadedHabit.deadline_time ?? "");
         setMinTextLength(
-          loadedHabit.min_text_length != null ? String(loadedHabit.min_text_length) : "",
+          draft?.minTextLength ?? (loadedHabit.min_text_length != null ? String(loadedHabit.min_text_length) : ""),
         );
-        setScheduleDays(loadedHabit.schedule_days ?? []);
+        setScheduleDays(draft?.scheduleDays ?? loadedHabit.schedule_days ?? []);
         setError("");
       } catch (err) {
         setError(
@@ -96,6 +110,14 @@ function EditHabitPageContent() {
 
     void load();
   }, [habitId]);
+
+  useEffect(() => {
+    if (!habit) return;
+    writePageMemory<EditHabitDraft>(`habits/edit/${habitId}`, {
+      customName, description, frequency, targetDuration, targetQuantity,
+      targetUnit, deadlineTime, minTextLength, scheduleDays,
+    });
+  }, [habit, habitId, customName, description, frequency, targetDuration, targetQuantity, targetUnit, deadlineTime, minTextLength, scheduleDays]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -122,6 +144,7 @@ function EditHabitPageContent() {
         min_text_length: isTextType(vt) && minTextLength.trim() ? Number(minTextLength) : null,
         schedule_days: frequency === "custom" ? scheduleDays : undefined,
       });
+      removePageMemory(`habits/edit/${habitId}`);
       router.push("/habits");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al actualizar hábito.");
@@ -141,7 +164,7 @@ function EditHabitPageContent() {
   if (!habit) {
     return (
       <div className="pt-6 pb-4 max-w-lg mx-auto px-4">
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+        <div role="alert" className="rounded-lg border border-red-200/40 bg-red-950/30 px-4 py-3 text-sm text-red-100">
           {error || "Hábito no encontrado."}
         </div>
       </div>
@@ -153,7 +176,8 @@ function EditHabitPageContent() {
       <div className="flex items-center gap-4 mb-6">
         <Link
           href="/habits"
-          className="flex items-center justify-center size-10 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+          aria-label="Volver a Hábitos"
+          className="flex items-center justify-center size-11 rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
         >
           <ArrowLeft className="size-5" />
         </Link>
@@ -163,7 +187,7 @@ function EditHabitPageContent() {
       </div>
 
       {error && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 mb-4">
+        <div role="alert" className="rounded-lg border border-red-200/40 bg-red-950/30 px-4 py-3 text-sm text-red-100 mb-4">
           {error}
         </div>
       )}
@@ -184,17 +208,17 @@ function EditHabitPageContent() {
             </span>
           ) : null}
           {habit.xp_base != null ? (
-            <span className="rounded-full bg-green-500/10 text-green-600 px-3 py-1">
+            <span className="rounded-full bg-emerald-950/35 text-emerald-100 px-3 py-1">
               XP base: {habit.xp_base}
             </span>
           ) : null}
           {(habit.max_xp_per_day ?? 0) > 0 ? (
-            <span className="rounded-full bg-violet-500/10 text-violet-400 px-3 py-1">
+            <span className="rounded-full bg-white/15 text-white px-3 py-1">
               Cap: {habit.max_xp_per_day} XP/día
             </span>
           ) : null}
           {(habit.xp_rate ?? 0) > 0 ? (
-            <span className="rounded-full bg-blue-500/10 text-blue-400 px-3 py-1">
+            <span className="rounded-full bg-sky-950/35 text-sky-100 px-3 py-1">
               +{habit.xp_rate} XP/min
             </span>
           ) : null}
@@ -296,7 +320,7 @@ function EditHabitPageContent() {
                         min={1}
                         value={targetDuration}
                         onChange={(event) => setTargetDuration(event.target.value)}
-                        placeholder="e.g. 15"
+                        placeholder="Ej. 15"
                         className="h-12 w-28 bg-white/13 border border-white/20 text-white rounded-xl text-center focus-visible:ring-[var(--purple)]/50 focus-visible:border-[var(--purple)] placeholder:text-white/40"
                       />
                       <span className="text-muted-foreground text-sm">minutos</span>
@@ -332,7 +356,7 @@ function EditHabitPageContent() {
                         min={1}
                         value={targetQuantity}
                         onChange={(event) => setTargetQuantity(event.target.value)}
-                        placeholder="e.g. 3"
+                        placeholder="Ej. 3"
                         className="h-12 w-28 bg-white/13 border border-white/20 text-white rounded-xl text-center focus-visible:ring-[var(--purple)]/50 focus-visible:border-[var(--purple)] placeholder:text-white/40"
                       />
                       <Input
@@ -354,7 +378,7 @@ function EditHabitPageContent() {
                         min={1}
                         value={minTextLength}
                         onChange={(event) => setMinTextLength(event.target.value)}
-                        placeholder="e.g. 50"
+                        placeholder="Ej. 50"
                         className="h-12 w-28 bg-white/13 border border-white/20 text-white rounded-xl text-center focus-visible:ring-[var(--purple)]/50 focus-visible:border-[var(--purple)] placeholder:text-white/40"
                       />
                       <span className="text-muted-foreground text-sm">caracteres</span>

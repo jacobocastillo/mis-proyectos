@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ClayMotionBox } from "@/components/ui/clay-motion-box";
 import { Input } from "@/components/ui/input";
+import { readPageMemory, removePageMemory, writePageMemory } from "@/services/navigation/pageMemory";
 import {
   getHabitTargetSummary,
   FREQUENCY_LABELS,
@@ -36,19 +37,34 @@ function isTextType(vt: string): boolean {
   return vt === "texto" || vt === "text_ai";
 }
 
+interface NewHabitDraft {
+  selectedHabitId: number | null;
+  customName: string;
+  description: string;
+  frequency: HabitFrequency;
+  targetDuration: string;
+  targetQuantity: string;
+  targetUnit: string;
+  deadlineTime: string;
+  minTextLength: string;
+  scheduleDays: number[];
+}
+
 export default function NewHabitPage() {
   const router = useRouter();
+  const savedDraft = useRef(readPageMemory<NewHabitDraft>("habits/new"));
+  const restoringDraft = useRef(Boolean(savedDraft.current));
   const [catalog, setCatalog] = useState<HabitCatalogItem[]>([]);
-  const [selectedHabitId, setSelectedHabitId] = useState<number | null>(null);
-  const [customName, setCustomName] = useState("");
-  const [description, setDescription] = useState("");
-  const [frequency, setFrequency] = useState<HabitFrequency>("daily");
-  const [targetDuration, setTargetDuration] = useState<string>("");
-  const [targetQuantity, setTargetQuantity] = useState<string>("");
-  const [targetUnit, setTargetUnit] = useState("");
-  const [deadlineTime, setDeadlineTime] = useState("");
-  const [minTextLength, setMinTextLength] = useState<string>("");
-  const [scheduleDays, setScheduleDays] = useState<number[]>([]);
+  const [selectedHabitId, setSelectedHabitId] = useState<number | null>(savedDraft.current?.selectedHabitId ?? null);
+  const [customName, setCustomName] = useState(savedDraft.current?.customName ?? "");
+  const [description, setDescription] = useState(savedDraft.current?.description ?? "");
+  const [frequency, setFrequency] = useState<HabitFrequency>(savedDraft.current?.frequency ?? "daily");
+  const [targetDuration, setTargetDuration] = useState<string>(savedDraft.current?.targetDuration ?? "");
+  const [targetQuantity, setTargetQuantity] = useState<string>(savedDraft.current?.targetQuantity ?? "");
+  const [targetUnit, setTargetUnit] = useState(savedDraft.current?.targetUnit ?? "");
+  const [deadlineTime, setDeadlineTime] = useState(savedDraft.current?.deadlineTime ?? "");
+  const [minTextLength, setMinTextLength] = useState<string>(savedDraft.current?.minTextLength ?? "");
+  const [scheduleDays, setScheduleDays] = useState<number[]>(savedDraft.current?.scheduleDays ?? []);
   const [loadingCatalog, setLoadingCatalog] = useState(true);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -59,7 +75,8 @@ export default function NewHabitPage() {
         const habits = await fetchHabitCatalog();
         setCatalog(habits);
         const firstHabit = habits[0] ?? null;
-        setSelectedHabitId(firstHabit?.id ?? null);
+        const remembered = savedDraft.current?.selectedHabitId;
+        setSelectedHabitId(remembered && habits.some((habit) => habit.id === remembered) ? remembered : firstHabit?.id ?? null);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error al cargar el catálogo.");
       } finally {
@@ -76,9 +93,22 @@ export default function NewHabitPage() {
   );
 
   useEffect(() => {
+    writePageMemory<NewHabitDraft>("habits/new", {
+      selectedHabitId, customName, description, frequency, targetDuration,
+      targetQuantity, targetUnit, deadlineTime, minTextLength, scheduleDays,
+    });
+  }, [selectedHabitId, customName, description, frequency, targetDuration, targetQuantity, targetUnit, deadlineTime, minTextLength, scheduleDays]);
+
+  useEffect(() => {
     if (!selectedHabit) {
       return;
     }
+
+    if (restoringDraft.current && selectedHabit.id === savedDraft.current?.selectedHabitId) {
+      restoringDraft.current = false;
+      return;
+    }
+    restoringDraft.current = false;
 
     setCustomName("");
     setDescription("");
@@ -126,6 +156,7 @@ export default function NewHabitPage() {
         min_text_length: isTextType(vt) && minTextLength.trim() ? Number(minTextLength) : null,
         schedule_days: frequency === "custom" ? scheduleDays : undefined,
       });
+      removePageMemory("habits/new");
       router.push("/habits");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al asignar el hábito.");
@@ -139,7 +170,8 @@ export default function NewHabitPage() {
       <div className="flex items-center gap-4 mb-6">
         <Link
           href="/habits"
-          className="flex items-center justify-center size-10 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+          aria-label="Volver a Hábitos"
+          className="flex items-center justify-center size-11 rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
         >
           <ArrowLeft className="size-5" />
         </Link>
@@ -149,7 +181,7 @@ export default function NewHabitPage() {
       </div>
 
       {error && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 mb-4">
+        <div role="alert" className="rounded-lg border border-red-200/40 bg-red-950/30 px-4 py-3 text-sm text-red-100 mb-4">
           {error}
         </div>
       )}
@@ -198,16 +230,16 @@ export default function NewHabitPage() {
                         {getHabitTargetSummary(selectedHabit)}
                       </span>
                     ) : null}
-                    <span className="rounded-full bg-green-500/10 text-green-600 px-3 py-1">
+                    <span className="rounded-full bg-emerald-950/35 text-emerald-100 px-3 py-1">
                       XP base: {selectedHabit.xp_base}
                     </span>
                     {selectedHabit.max_xp_per_day > 0 ? (
-                      <span className="rounded-full bg-violet-500/10 text-violet-400 px-3 py-1">
+                      <span className="rounded-full bg-white/15 text-white px-3 py-1">
                         Cap: {selectedHabit.max_xp_per_day} XP/día
                       </span>
                     ) : null}
                     {selectedHabit.xp_rate > 0 ? (
-                      <span className="rounded-full bg-blue-500/10 text-blue-400 px-3 py-1">
+                      <span className="rounded-full bg-sky-950/35 text-sky-100 px-3 py-1">
                         +{selectedHabit.xp_rate} XP/min
                       </span>
                     ) : null}
@@ -295,7 +327,7 @@ export default function NewHabitPage() {
                         min={1}
                         value={targetDuration}
                         onChange={(event) => setTargetDuration(event.target.value)}
-                        placeholder="e.g. 15"
+                        placeholder="Ej. 15"
                         className="h-12 w-28 bg-background border-border text-foreground rounded-xl text-center focus-visible:ring-primary/50 focus-visible:border-primary"
                       />
                       <span className="text-muted-foreground text-sm">minutos</span>
@@ -331,7 +363,7 @@ export default function NewHabitPage() {
                         min={1}
                         value={targetQuantity}
                         onChange={(event) => setTargetQuantity(event.target.value)}
-                        placeholder="e.g. 3"
+                        placeholder="Ej. 3"
                         className="h-12 w-28 bg-background border-border text-foreground rounded-xl text-center focus-visible:ring-primary/50 focus-visible:border-primary"
                       />
                       <Input
@@ -353,7 +385,7 @@ export default function NewHabitPage() {
                         min={1}
                         value={minTextLength}
                         onChange={(event) => setMinTextLength(event.target.value)}
-                        placeholder="e.g. 50"
+                        placeholder="Ej. 50"
                         className="h-12 w-28 bg-background border-border text-foreground rounded-xl text-center focus-visible:ring-primary/50 focus-visible:border-primary"
                       />
                       <span className="text-muted-foreground text-sm">caracteres</span>

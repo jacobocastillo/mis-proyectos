@@ -124,6 +124,7 @@ function ValidateHabitPageContent() {
   const [habit, setHabit] = useState<Habit | null>(null);
   const [loadingHabit, setLoadingHabit] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imageMimeType, setImageMimeType] = useState<string | null>(null);
@@ -150,8 +151,8 @@ function ValidateHabitPageContent() {
       }
     }
 
-    loadHabit();
-  }, [habitId]);
+    void loadHabit();
+  }, [habitId, retryCount]);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -242,7 +243,7 @@ function ValidateHabitPageContent() {
       <div className="pt-8 pb-4 max-w-lg mx-auto px-4 text-center">
         <p className="text-muted-foreground mb-4">{loadError}</p>
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => { setLoadingHabit(true); setRetryCount((count) => count + 1); }}
           className="text-primary hover:text-primary/80 font-medium text-sm"
         >
           Reintentar
@@ -319,7 +320,7 @@ function ValidateHabitPageContent() {
               </span>
             ) : null}
             {habit.xp_base != null ? (
-              <span className="inline-flex items-center rounded-full bg-violet-500/10 text-violet-400 px-2 py-0.5 text-[11px] font-medium">
+              <span className="inline-flex items-center rounded-full bg-white/15 text-white px-2 py-0.5 text-[11px] font-medium">
                 {habit.xp_base} XP base
               </span>
             ) : null}
@@ -411,7 +412,7 @@ function ValidateHabitPageContent() {
           )}
 
           {errorMsg && (
-            <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            <div role="alert" className="rounded-lg border border-red-200/40 bg-red-950/30 px-4 py-3 text-sm text-red-100">
               {errorMsg}
             </div>
           )}
@@ -438,7 +439,7 @@ function ValidateHabitPageContent() {
             className="w-full px-4 py-3 bg-background border border-border text-foreground rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors resize-none"
           />
           {errorMsg && (
-            <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            <div role="alert" className="rounded-lg border border-red-200/40 bg-red-950/30 px-4 py-3 text-sm text-red-100">
               {errorMsg}
             </div>
           )}
@@ -468,7 +469,7 @@ function ValidateHabitPageContent() {
             </p>
           </div>
           {errorMsg && (
-            <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            <div role="alert" className="rounded-lg border border-red-200/40 bg-red-950/30 px-4 py-3 text-sm text-red-100">
               {errorMsg}
             </div>
           )}
@@ -486,7 +487,7 @@ function ValidateHabitPageContent() {
         <div className="space-y-4">
           <TimerValidation habit={habit} onComplete={handleValidate} />
           {errorMsg && (
-            <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 mt-4">
+            <div role="alert" className="rounded-lg border border-red-200/40 bg-red-950/30 px-4 py-3 text-sm text-red-100 mt-4">
               {errorMsg}
             </div>
           )}
@@ -573,7 +574,7 @@ function ValidateHabitPageContent() {
               </div>
               <div>
                 <p className="text-foreground font-semibold text-lg">Validación rechazada</p>
-                <p className="text-red-400 text-sm">{result.razon}</p>
+                <p className="text-red-100 text-sm">{result.razon}</p>
               </div>
             </div>
 
@@ -624,7 +625,7 @@ function ValidateHabitPageContent() {
       {status === "error" && !result && errorMsg && (
         <div className="space-y-4">
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6">
-            <p className="text-red-400 font-medium">{errorMsg}</p>
+            <p className="text-red-100 font-medium">{errorMsg}</p>
           </div>
           <button
             onClick={() => {

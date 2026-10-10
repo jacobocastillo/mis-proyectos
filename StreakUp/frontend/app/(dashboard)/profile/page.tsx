@@ -31,7 +31,7 @@ import {
   Users,
 } from "lucide-react";
 import { fetchProfileStats, fetchXpInfo, fetchDetailedStats } from "@/services/stats/statsService";
-import { getSession, clearSession } from "@/services/auth/authService";
+import { getSession, clearSession, logoutAndClear } from "@/services/auth/authService";
 import { clearAccountLocalData, deleteAccount } from "@/services/auth/accountService";
 import { fetchCurrentUser, updateProfile } from "@/services/auth/profileService";
 import { fetchAchievements } from "@/services/achievements/achievementService";
@@ -53,7 +53,10 @@ import { cn } from "@/lib/utils";
 import { ConfirmDeleteAccountModal } from "@/components/feedback/ConfirmDeleteAccountModal";
 import type { AuthUser } from "@/types/auth";
 import { WEEKDAY_LABELS } from "@/types/habits";
-import type { ProfileStats, XpInfo } from "@/types/stats";
+import type { DetailedStats, ProfileStats, StatsSummary, XpInfo } from "@/types/stats";
+import type { Habit } from "@/types/habits";
+import { getCachedApiData } from "@/services/api/queryCache";
+import { API_ENDPOINTS } from "@/services/api/endpoints";
 
 // Icon mapping for achievement keys coming from the backend
 const ACHIEVEMENT_ICON_MAP: Record<string, typeof Zap> = {
@@ -117,24 +120,29 @@ function getPermissionLabel(permission: ReminderPermissionState): string {
 }
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [stats, setStats] = useState<ProfileStats>({
+  const [user, setUser] = useState<AuthUser | null>(() => getCachedApiData<AuthUser>(API_ENDPOINTS.user.me) ?? getSession()?.user ?? null);
+  const [stats, setStats] = useState<ProfileStats>(() => {
+    const summary = getCachedApiData<StatsSummary>(API_ENDPOINTS.stats.summary);
+    const habits = getCachedApiData<Habit[]>(API_ENDPOINTS.habits.list);
+    return summary && habits ? { ...summary, habits_count: habits.length } : {
     streak: 0, today_completed: 0, today_total: 0, completion_rate: 0,
     habits_count: 0, total_xp: 0, level: 1, validations_today: 0,
+    };
   });
-  const [xpInfo, setXpInfo] = useState<XpInfo>({
+  const [xpInfo, setXpInfo] = useState<XpInfo>(() => getCachedApiData<XpInfo>(API_ENDPOINTS.stats.xp) ?? {
     total_xp: 0, level: 1, xp_in_level: 0, xp_for_next_level: 250, progress_pct: 0,
   });
-  const [records, setRecords] = useState({
+  const [records, setRecords] = useState(() => getCachedApiData<DetailedStats>(API_ENDPOINTS.stats.detailed)?.records ?? {
     longest_streak: 0, best_day: 0, current_streak: 0, active_days: 0,
   });
-  const [validationStats, setValidationStats] = useState({
+  const [validationStats, setValidationStats] = useState(() => getCachedApiData<DetailedStats>(API_ENDPOINTS.stats.detailed)?.validations ?? {
     total_successful: 0, total_attempts: 0, success_rate: 0,
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => getCachedApiData(API_ENDPOINTS.stats.detailed) === null);
+  const [retryCount, setRetryCount] = useState(0);
   const [error, setError] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [achievements, setAchievements] = useState<AchievementItem[]>([]);
+  const [achievements, setAchievements] = useState<AchievementItem[]>(() => getCachedApiData<AchievementItem[]>(API_ENDPOINTS.achievements.list) ?? []);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editUsername, setEditUsername] = useState("");
   const [profileError, setProfileError] = useState("");
@@ -191,8 +199,8 @@ export default function ProfilePage() {
         setLoading(false);
       }
     }
-    fetchData();
-  }, []);
+    void fetchData();
+  }, [retryCount]);
 
   const unlockedCount = useMemo(() => {
     return achievements.filter((a) => a.earned).length;
@@ -293,9 +301,9 @@ export default function ProfilePage() {
     );
   }
 
-  const handleLogout = () => {
-    clearSession();
-    router.push("/login");
+  const handleLogout = async () => {
+    await logoutAndClear();
+    router.replace("/login");
   };
 
   async function handleDeleteAccount() {
@@ -305,7 +313,7 @@ export default function ProfilePage() {
     router.push("/login");
   }
 
-  if (error) {
+  if (error && getCachedApiData(API_ENDPOINTS.stats.detailed) === null) {
     return (
       <div className="space-y-[24px]">
         <div className="flex items-center justify-between gap-[14px]">
@@ -321,7 +329,7 @@ export default function ProfilePage() {
             <p className="text-[14px] text-white/74">{error}</p>
           </div>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => { setLoading(true); setRetryCount((count) => count + 1); }}
             className="inline-flex h-[48px] items-center justify-center rounded-[20px] bg-[var(--purple)] px-[20px] text-[15px] font-bold text-white transition-transform active:scale-95"
           >
             Reintentar
@@ -333,6 +341,7 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-[24px] pb-[80px]">
+      {error && <p role="alert" className="rounded-xl border border-amber-200/40 bg-amber-950/30 px-4 py-3 text-sm text-white">{error} Se muestran los datos disponibles.</p>}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

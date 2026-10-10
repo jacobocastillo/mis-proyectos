@@ -30,7 +30,8 @@ def register():
             email=data["email"],
             password=data["password"],
         )
-        return jsonify({"message": "User registered successfully.", "user": user}), 201
+        session = login_user(email=data["email"], password=data["password"])
+        return jsonify({"message": "User registered successfully.", **session}), 201
     except ValueError as exc:
         return error_response(str(exc), 409)
 

@@ -190,3 +190,40 @@
   .safe-area-pb { padding-bottom: env(safe-area-inset-bottom); }
 }
 @keyframes sandStream {0%,100%{opacity:.45;transform:translateX(-50%) scaleY(.8)}50%{opacity:1;transform:translateX(-50%) scaleY(1.15)}}
+
+/* Shared screen rhythm and legibility across brand themes. */
+.app-screen {
+  --background: var(--bg1);
+  --foreground: #ffffff;
+  --card: var(--bg2);
+  --card-foreground: #ffffff;
+  --secondary: rgba(255,255,255,.14);
+  --secondary-foreground: #ffffff;
+  --muted: var(--bg1);
+  --muted-foreground: rgba(255,255,255,.82);
+  --primary: var(--yellow);
+  --primary-foreground: var(--bg1);
+  --border: rgba(255,255,255,.26);
+  --input: rgba(255,255,255,.26);
+  --ring: #ffffff;
+  scrollbar-gutter: stable;
+  overscroll-behavior-y: contain;
+  padding-top: max(24px, env(safe-area-inset-top));
+  padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+}
+.app-screen h1, .app-screen h2, .app-screen h3 { text-wrap: balance; }
+.app-screen p { overflow-wrap: anywhere; }
+.app-screen button, .app-screen a, [data-slot="button"] { -webkit-tap-highlight-color: transparent; }
+input, textarea, select { font-size: max(16px, 1em); }
+@media (max-width: 360px) {
+  .app-screen { padding-left: 16px; padding-right: 16px; }
+  .app-screen .grid-cols-2 { gap: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -64,6 +64,8 @@ test("register: Tab reaches all four inputs", async ({ page }) => {
   await page.goto("/register");
   await page.waitForLoadState("networkidle");
 
+  await page.keyboard.press("Tab");
+  expect(await page.evaluate(() => document.activeElement?.getAttribute("aria-label"))).toBe("Volver a la pantalla anterior");
   const expectedIds = ["reg-username", "reg-email", "reg-password", "reg-confirm-password"];
   for (const id of expectedIds) {
     await page.keyboard.press("Tab");

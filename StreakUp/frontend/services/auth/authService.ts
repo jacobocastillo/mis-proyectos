@@ -8,6 +8,8 @@ import {
   updateStoredUser,
 } from "@/services/auth/session";
 import { DB_KEYS, dbWrite } from "@/services/storage/offlineDb";
+import { clearApiCache } from "@/services/api/queryCache";
+import { clearPageMemory } from "@/services/navigation/pageMemory";
 import type { AuthSession, AuthUser } from "@/types/auth";
 
 const OFFLINE_LOGIN_ERROR = "No hay conexión. Usa una sesión guardada previamente.";
@@ -36,15 +38,13 @@ export interface LoginResponse {
   };
 }
 
-export interface RegisterResponse {
+export interface RegisterResponse extends LoginResponse {
   message: string;
-  user: {
-    id: number;
-    username: string;
-    email: string;
-    role: string;
-    created_at: string;
-  };
+}
+
+interface LegacyRegisterResponse {
+  message: string;
+  user: LoginResponse["user"];
 }
 
 /**
@@ -68,9 +68,14 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
  */
 export async function register(payload: RegisterPayload): Promise<RegisterResponse> {
   try {
-    return await apiPost<RegisterResponse>(API_ENDPOINTS.auth.register, JSON.stringify(payload), {
+    const response = await apiPost<RegisterResponse | LegacyRegisterResponse>(API_ENDPOINTS.auth.register, JSON.stringify(payload), {
       headers: { Authorization: "" },
     });
+    if ("access_token" in response && "refresh_token" in response && response.access_token && response.refresh_token) {
+      return response;
+    }
+    const session = await login({ email: payload.email, password: payload.password });
+    return { ...response, ...session };
   } catch (error) {
     if (isAppErrorCode(error, "network_unavailable") || isAppErrorCode(error, "backend_unavailable")) {
       throw new Error(OFFLINE_REGISTER_ERROR);
@@ -83,6 +88,7 @@ export async function register(payload: RegisterPayload): Promise<RegisterRespon
  * Save auth session to browser storage and keep request-time auth in sync.
  */
 export function saveSession(data: LoginResponse): void {
+  clearApiCache();
   persistSession({
     accessToken: data.access_token,
     refreshToken: data.refresh_token,
@@ -101,6 +107,8 @@ export function getSession(): AuthSession | null {
  * Clear auth session from browser storage.
  */
 export function clearSession(): void {
+  clearApiCache();
+  clearPageMemory();
   clearStoredSession();
 }
 
@@ -126,7 +134,7 @@ export async function logoutAndClear(): Promise<void> {
     }
   }
 
-  clearStoredSession();
+  clearSession();
 
   // Wipe offline caches so the next user starts with a clean slate.
   for (const key of Object.values(DB_KEYS)) {

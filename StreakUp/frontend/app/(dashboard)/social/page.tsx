@@ -12,6 +12,16 @@ import {
 import { fetchHabits } from "@/services/habits/habitService";
 import type { SharedStreakGroup, SharedStreakMember } from "@/types/social";
 import type { Habit } from "@/types/habits";
+import { getCachedApiData } from "@/services/api/queryCache";
+import { API_ENDPOINTS } from "@/services/api/endpoints";
+import { readPageMemory, writePageMemory } from "@/services/navigation/pageMemory";
+
+interface SocialDraft {
+  groupName: string;
+  selectedHabitId: number | "";
+  durationDays: number | null;
+  inviteCode: string;
+}
 
 function memberLabel(member: SharedStreakMember): { icon: LucideIcon; text: string; color: string } {
   if (member.status === "winner") return { icon: Trophy, text: "Ganador", color: "text-amber-300" };
@@ -30,18 +40,22 @@ const DURATION_OPTIONS: Array<{ label: string; value: number | null }> = [
 ];
 
 export default function SocialPage() {
-  const [groups, setGroups] = useState<SharedStreakGroup[]>([]);
-  const [habits, setHabits] = useState<Habit[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [groups, setGroups] = useState<SharedStreakGroup[]>(() => getCachedApiData<SharedStreakGroup[]>(API_ENDPOINTS.social.groups) ?? []);
+  const [habits, setHabits] = useState<Habit[]>(() => getCachedApiData<Habit[]>(API_ENDPOINTS.habits.list) ?? []);
+  const [loading, setLoading] = useState(() => getCachedApiData(API_ENDPOINTS.social.groups) === null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [groupName, setGroupName] = useState("");
-  const [selectedHabitId, setSelectedHabitId] = useState<number | "">("");
-  const [durationDays, setDurationDays] = useState<number | null>(null);
-  const [inviteCode, setInviteCode] = useState("");
+  const [groupName, setGroupName] = useState(() => readPageMemory<SocialDraft>("social")?.groupName ?? "");
+  const [selectedHabitId, setSelectedHabitId] = useState<number | "">(() => readPageMemory<SocialDraft>("social")?.selectedHabitId ?? "");
+  const [durationDays, setDurationDays] = useState<number | null>(() => readPageMemory<SocialDraft>("social")?.durationDays ?? null);
+  const [inviteCode, setInviteCode] = useState(() => readPageMemory<SocialDraft>("social")?.inviteCode ?? "");
+
+  useEffect(() => {
+    writePageMemory<SocialDraft>("social", { groupName, selectedHabitId, durationDays, inviteCode });
+  }, [groupName, selectedHabitId, durationDays, inviteCode]);
 
   async function loadData(showSpinner = false) {
-    if (showSpinner) setLoading(true);
+    if (showSpinner && getCachedApiData(API_ENDPOINTS.social.groups) === null) setLoading(true);
     try {
       const [groupsResult, habitsResult] = await Promise.allSettled([
         fetchSharedGroups(),

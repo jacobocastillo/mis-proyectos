@@ -9,6 +9,7 @@ import {
 } from "@/services/auth/session";
 
 import { API_ENDPOINTS } from "./endpoints";
+import { cachedApiRequest, clearApiCache } from "./queryCache";
 
 export type AppErrorCode =
   | "offline_mode"
@@ -173,6 +174,7 @@ function mapTransportError(error: unknown): AppError {
 }
 
 function handleUnauthorized(message: string, apiCode?: string): never {
+  clearApiCache();
   clearStoredSession();
 
   if (typeof window !== "undefined") {
@@ -291,11 +293,16 @@ export async function apiRequest<T>({ path, headers, ...options }: RequestOption
     });
   }
 
+  if (options.method && options.method !== "GET" && /^\/api\/(habits|checkins|validate|pomodoro|social|users|sync)/.test(path)) {
+    clearApiCache();
+  }
+
   return responseBody as T;
 }
 
 export function apiGet<T>(path: string, options?: Omit<RequestOptions, "path" | "method">): Promise<T> {
-  return apiRequest<T>({ path, method: "GET", ...options });
+  if (options || isOfflineModeActive()) return apiRequest<T>({ path, method: "GET", ...options });
+  return cachedApiRequest(path, () => apiRequest<T>({ path, method: "GET" }));
 }
 
 export function apiPost<T>(

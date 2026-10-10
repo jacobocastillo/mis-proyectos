@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { hasSavedSession } from "@/services/auth/authService";
 import { NetworkStatusBanner } from "@/components/feedback/NetworkStatusBanner";
@@ -10,6 +10,9 @@ import { BottomNav } from "@/components/layout/BottomNav";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const mainRef = useRef<HTMLElement>(null);
+  const scrollPositions = useRef(new Map<string, number>());
   const [sessionReady, setSessionReady] = useState(false);
 
   useEffect(() => {
@@ -21,6 +24,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       setSessionReady(true);
     }
   }, [router]);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      if (mainRef.current) mainRef.current.scrollTop = scrollPositions.current.get(pathname) ?? 0;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [pathname, sessionReady]);
 
   if (!sessionReady) {
     return (
@@ -47,7 +57,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <AchievementToast />
 
       {/* Main content - handles the scrolling area like the .screen class in HTML */}
-      <main id="main-content" tabIndex={-1} aria-label="Contenido principal" className="absolute inset-0 overflow-y-auto overflow-x-hidden pt-7 px-[22px] pb-[100px] z-10 animate-[enter_0.28s_ease_both]">
+      <main ref={mainRef} id="main-content" tabIndex={-1} aria-label="Contenido principal" onScroll={(event) => scrollPositions.current.set(pathname, event.currentTarget.scrollTop)} className="app-screen absolute inset-0 overflow-y-auto overflow-x-hidden pt-7 px-[22px] pb-[100px] z-10">
         {children}
       </main>
 

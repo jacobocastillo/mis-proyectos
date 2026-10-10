@@ -22,7 +22,7 @@ export function HabitRow({ icon, name, subtitle, checked, onToggle, onView, pend
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-[6px] flex-wrap">
-          <h3 className="text-[18px] font-bold leading-tight">{name}</h3>
+          <h3 className="text-[17px] font-bold leading-tight break-words">{name}</h3>
           {badge}
         </div>
         <p className="text-white/74 text-[13px]">
@@ -30,7 +30,7 @@ export function HabitRow({ icon, name, subtitle, checked, onToggle, onView, pend
           {subtitle}
         </p>
       </div>
-      <div className="flex gap-[8px]">
+      <div className="flex gap-[6px] shrink-0">
         {onView && (
           <button
             onClick={onView}

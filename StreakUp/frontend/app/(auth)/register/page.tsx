@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Flame, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Flame, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { register } from "@/services/auth/authService";
+import { register, saveSession } from "@/services/auth/authService";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -15,24 +15,36 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const submitting = useRef(false);
+  const passwordLength = Array.from(password).length;
+  const meetsMinimum = passwordLength >= 8;
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (submitting.current) return;
     setError("");
+
+    if (!meetsMinimum) {
+      setError("La contraseña debe tener al menos 8 caracteres.");
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden.");
       return;
     }
 
+    submitting.current = true;
     setIsLoading(true);
 
     try {
-      await register({ username, email, password });
-      router.replace("/login");
+      const session = await register({ username, email, password });
+      saveSession(session);
+      router.replace("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo crear la cuenta.");
     } finally {
+      submitting.current = false;
       setIsLoading(false);
     }
   }
@@ -40,6 +52,9 @@ export default function RegisterPage() {
   return (
     <div className="absolute inset-0 grid place-items-center p-[26px_22px] overflow-x-hidden overflow-y-auto z-10 animate-[enter_0.28s_ease_both]">
       <div className="w-full max-w-[380px] relative z-10 text-center my-auto py-8">
+        <button type="button" onClick={() => router.back()} aria-label="Volver a la pantalla anterior" disabled={isLoading} className="absolute left-0 top-0 grid size-11 place-items-center rounded-full bg-[var(--bg3)] text-white focus-visible:ring-2 focus-visible:ring-[var(--yellow)]">
+          <ArrowLeft className="size-5" aria-hidden="true" />
+        </button>
         <div className="mx-auto size-14 rounded-2xl bg-[var(--bg3)] text-[var(--yellow)] grid place-items-center">
           <Flame className="size-8" strokeWidth={2.4} aria-hidden="true" />
         </div>
@@ -92,10 +107,16 @@ export default function RegisterPage() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                minLength={8}
+                aria-describedby="password-help"
                 required
                 disabled={isLoading}
                 className="w-full h-[54px] rounded-[14px] border border-white/20 bg-[var(--bg1)] text-white text-[16px] px-[16px] outline-none placeholder:text-white/65 focus-visible:ring-2 focus-visible:ring-[var(--yellow)]"
               />
+              <div id="password-help" role="status" aria-live="polite" className="mt-2 flex items-center gap-2 text-sm text-white/85">
+                {meetsMinimum ? <CheckCircle2 className="size-4 text-emerald-300" aria-hidden="true" /> : <span aria-hidden="true" className="size-4 rounded-full border border-white/60" />}
+                <span>{passwordLength}/8 caracteres mínimos{meetsMinimum ? " · Longitud mínima cumplida" : ""}</span>
+              </div>
             </div>
 
             <div className="text-left mb-[24px]">
@@ -113,14 +134,8 @@ export default function RegisterPage() {
             </div>
             
             <Button type="submit" variant="sacro-purple" size="sacro" disabled={isLoading}>
-              {isLoading ? <Loader2 className="size-5 animate-spin mr-2" /> : null}
-              Crear cuenta
-            </Button>
-            
-            <div className="h-[18px]"></div>
-            
-            <Button type="button" variant="sacro-ghost" size="sacro" onClick={() => router.push("/login")} disabled={isLoading}>
-              Iniciar sesión
+              {isLoading ? <Loader2 className="size-5 animate-spin mr-2" aria-hidden="true" /> : null}
+              {isLoading ? "Creando cuenta…" : "Crear cuenta"}
             </Button>
           </form>
         </div>

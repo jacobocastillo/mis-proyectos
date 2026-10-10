@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Plus, Pencil, Trash2, Camera, Check, NotebookPen, icons } from "lucide-react";
 import { fetchHabits, deleteHabit } from "@/services/habits/habitService";
 import { fetchTodayHabits } from "@/services/checkins/checkinService";
@@ -9,6 +10,8 @@ import { fetchSharedGroups } from "@/services/social/socialService";
 import type { Habit } from "@/types/habits";
 import { getHabitTargetSummary, SECTION_ICONS, VALIDATION_TYPE_LABELS } from "@/types/habits";
 import { Button } from "@/components/ui/button";
+import { getCachedApiData, hasFreshApiData } from "@/services/api/queryCache";
+import { API_ENDPOINTS } from "@/services/api/endpoints";
 
 const DIFFICULTY_LABELS: Record<string, string> = {
   facil: "Fácil",
@@ -23,17 +26,18 @@ const DIFFICULTY_COLORS: Record<string, string> = {
 };
 
 export default function HabitsPage() {
-  const [habits, setHabits] = useState<Habit[]>([]);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const [habits, setHabits] = useState<Habit[]>(() => getCachedApiData<Habit[]>(API_ENDPOINTS.habits.list) ?? []);
+  const [loading, setLoading] = useState(() => getCachedApiData(API_ENDPOINTS.habits.list) === null);
   const [error, setError] = useState("");
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [checkedToday, setCheckedToday] = useState<Map<number, boolean>>(new Map());
+  const [checkedToday, setCheckedToday] = useState<Map<number, boolean>>(() => new Map((getCachedApiData<Awaited<ReturnType<typeof fetchTodayHabits>>>(API_ENDPOINTS.checkins.today) ?? []).map((habit) => [habit.id, habit.checked_today])));
   const [sharedCatalogIds, setSharedCatalogIds] = useState<Set<number>>(new Set());
 
   async function loadHabits() {
     try {
-      setLoading(true);
+      if (getCachedApiData(API_ENDPOINTS.habits.list) === null) setLoading(true);
       const [habitsResult, todayResult] = await Promise.allSettled([
         fetchHabits(),
         fetchTodayHabits(),
@@ -76,7 +80,12 @@ export default function HabitsPage() {
   }
 
   useEffect(() => {
-    loadHabits();
+    void loadHabits();
+    const onFocus = () => {
+      if (!hasFreshApiData(API_ENDPOINTS.habits.list) || !hasFreshApiData(API_ENDPOINTS.checkins.today)) void loadHabits();
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
   }, []);
 
   async function handleDelete(id: number) {
@@ -109,7 +118,7 @@ export default function HabitsPage() {
           </p>
         </div>
         <button
-          onClick={() => window.location.href = "/habits/new"}
+          onClick={() => router.push("/habits/new")}
           aria-label="Crear nuevo hábito"
           className="w-[48px] h-[48px] rounded-full bg-white/18 text-[24px] grid place-items-center cursor-pointer transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
         >
@@ -135,7 +144,7 @@ export default function HabitsPage() {
       {!loading && habits.length === 0 && !error && (
         <div className="text-center p-8 bg-white/10 rounded-[24px] border border-white/20">
           <p className="text-white/80 mb-4">No tienes hábitos aún.</p>
-          <Button variant="sacro-ghost" onClick={() => window.location.href = "/habits/new"}>
+          <Button variant="sacro-ghost" onClick={() => router.push("/habits/new")}>
             Agregar hábito
           </Button>
         </div>
@@ -151,6 +160,12 @@ export default function HabitsPage() {
             const difficultyColor = DIFFICULTY_COLORS[difficultyKey] ?? "bg-white/10 text-white";
             const isCheckedToday = checkedToday.get(habit.id) === true;
             const isDueToday = checkedToday.has(habit.id);
+            const statusLabel = habit.active === false
+              ? "Pausado"
+              : isCheckedToday ? "Completado hoy" : isDueToday ? "Pendiente hoy" : "No programado hoy";
+            const statusClass = habit.active === false
+              ? "bg-slate-500/30 text-slate-100"
+              : isCheckedToday ? "bg-emerald-500/25 text-emerald-100" : isDueToday ? "bg-amber-500/25 text-amber-100" : "bg-white/15 text-white/85";
             const isShared =
               habit.catalog_habit_id != null &&
               sharedCatalogIds.has(habit.catalog_habit_id);
@@ -163,7 +178,7 @@ export default function HabitsPage() {
             return (
               <div
                 key={habit.id}
-                className="flex items-center gap-[14px] p-[16px] rounded-[24px] bg-white/13 border border-white/20 transition-colors hover:bg-white/20"
+                className="flex flex-wrap items-center gap-[12px] p-[16px] rounded-[24px] bg-[var(--bg2)] border border-white/25 transition-colors hover:brightness-110"
               >
                 {/* Icon */}
                 <div className="w-[58px] h-[58px] shrink-0 rounded-[18px] bg-white/18 grid place-items-center text-[34px] text-primary">
@@ -182,9 +197,9 @@ export default function HabitsPage() {
                 </div>
 
                 {/* Info */}
-                <div className="flex-1 min-w-0">
+                <div className="flex-[1_1_140px] min-w-0">
                   <div className="flex items-center gap-[6px] flex-wrap">
-                    <h3 className="text-[18px] font-bold leading-tight truncate">{habit.name}</h3>
+                    <h3 className="text-[18px] font-bold leading-tight break-words">{habit.name}</h3>
                     {isShared && (
                       <span className="px-[6px] py-[1px] rounded-full text-[10px] font-bold bg-[#36d98f]/20 text-[#36d98f] shrink-0">
                         Compartido
@@ -196,7 +211,8 @@ export default function HabitsPage() {
                     {targetSummary ? ` · ${targetSummary}` : ""}
                   </p>
 
-                  <div className="flex gap-[6px] mt-2">
+                  <div className="flex gap-[6px] mt-2 flex-wrap">
+                    <span className={`px-[8px] py-[2px] rounded-full text-[10px] font-bold ${statusClass}`}>{statusLabel}</span>
                     <span className={`px-[8px] py-[2px] rounded-full text-[10px] font-bold ${difficultyColor}`}>
                       {difficultyLabel}
                     </span>
@@ -228,12 +244,12 @@ export default function HabitsPage() {
                     </button>
                   </div>
                 ) : (
-                  <div className="flex gap-[8px] shrink-0">
+                  <div className="flex gap-[8px] shrink-0 ml-auto">
                     {habit.validation_type && (
                       <Link
                         href={`/habits/validate?id=${habit.id}`}
                         aria-label={isCheckedToday ? `${habit.name} validado hoy` : `Validar ${habit.name}`}
-                        className={`w-[40px] h-[40px] rounded-full grid place-items-center cursor-pointer transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 ${validationBtnClass}`}
+                        className={`w-[44px] h-[44px] rounded-full grid place-items-center cursor-pointer transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 ${validationBtnClass}`}
                       >
                         {isCheckedToday
                           ? <Check className="size-4" aria-hidden="true" />
@@ -245,14 +261,14 @@ export default function HabitsPage() {
                     <Link
                       href={`/habits/edit?id=${habit.id}`}
                       aria-label={`Editar ${habit.name}`}
-                      className="w-[40px] h-[40px] rounded-full bg-white/18 text-white grid place-items-center cursor-pointer transition-transform active:scale-95 hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+                      className="w-[44px] h-[44px] rounded-full bg-white/18 text-white grid place-items-center cursor-pointer transition-transform active:scale-95 hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
                     >
                       <Pencil className="size-4" aria-hidden="true" />
                     </Link>
                     <button
                       onClick={() => setConfirmingDeleteId(habit.id)}
                       aria-label={`Eliminar ${habit.name}`}
-                      className="w-[40px] h-[40px] rounded-full bg-red-500/20 text-red-200 grid place-items-center cursor-pointer transition-transform active:scale-95 hover:bg-red-500/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+                      className="w-[44px] h-[44px] rounded-full bg-red-500/20 text-red-200 grid place-items-center cursor-pointer transition-transform active:scale-95 hover:bg-red-500/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
                     >
                       <Trash2 className="size-4" aria-hidden="true" />
                     </button>

@@ -26,6 +26,8 @@ import { getPendingOps } from "@/services/sync/syncQueue";
 import { getHabitTargetSummary, SECTION_ICONS, VALIDATION_TYPE_LABELS } from "@/types/habits";
 import type { TodayHabit } from "@/types/checkins";
 import type { StatsSummary } from "@/types/stats";
+import { getCachedApiData, hasFreshApiData } from "@/services/api/queryCache";
+import { API_ENDPOINTS } from "@/services/api/endpoints";
 
 import { Button } from "@/components/ui/button";
 import { Mascot } from "@/components/Mascot";
@@ -51,9 +53,9 @@ const POMODORO_THEMES = [
 
 export default function DashboardHomePage() {
   const router = useRouter();
-  const [stats, setStats] = useState<StatsSummary>(EMPTY_STATS);
-  const [todayHabits, setTodayHabits] = useState<TodayHabit[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<StatsSummary>(() => getCachedApiData<StatsSummary>(API_ENDPOINTS.stats.summary) ?? EMPTY_STATS);
+  const [todayHabits, setTodayHabits] = useState<TodayHabit[]>(() => getCachedApiData<TodayHabit[]>(API_ENDPOINTS.checkins.today) ?? []);
+  const [loading, setLoading] = useState(() => !getCachedApiData(API_ENDPOINTS.stats.summary) || !getCachedApiData(API_ENDPOINTS.checkins.today));
   const [error, setError] = useState("");
   const [updatingHabitId, setUpdatingHabitId] = useState<number | null>(null);
   const [pendingHabitIds, setPendingHabitIds] = useState<Set<number>>(new Set());
@@ -76,7 +78,7 @@ export default function DashboardHomePage() {
   }
 
   const fetchData = useCallback(async (showSpinner = false) => {
-    if (showSpinner) setLoading(true);
+    if (showSpinner && !getCachedApiData(API_ENDPOINTS.stats.summary)) setLoading(true);
     try {
       const [statsData, habitsData] = await Promise.all([fetchStatsSummary(), fetchTodayHabits()]);
       setStats(statsData);
@@ -106,6 +108,11 @@ export default function DashboardHomePage() {
 
   useEffect(() => {
     void fetchData(true);
+    const onFocus = () => {
+      if (!hasFreshApiData(API_ENDPOINTS.stats.summary) || !hasFreshApiData(API_ENDPOINTS.checkins.today)) void fetchData();
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
   }, [fetchData]);
 
   async function handleToggleHabit(habitId: number) {
