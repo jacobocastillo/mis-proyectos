@@ -6,6 +6,13 @@ function token(): string {
   return `${header}.${payload}.test`;
 }
 
+test("direct registration link can return to login", async ({ page }) => {
+  await page.goto("/register");
+  await page.getByRole("link", { name: "Volver a iniciar sesión" }).click();
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole("button", { name: "Iniciar sesión" })).toBeVisible();
+});
+
 test("registration shows live length and opens an authenticated session", async ({ page }) => {
   let registrationRequests = 0;
   const accessToken = token();

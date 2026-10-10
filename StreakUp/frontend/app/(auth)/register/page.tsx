@@ -2,6 +2,7 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ArrowLeft, CheckCircle2, Flame, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -52,9 +53,9 @@ export default function RegisterPage() {
   return (
     <div className="absolute inset-0 grid place-items-center p-[26px_22px] overflow-x-hidden overflow-y-auto z-10 animate-[enter_0.28s_ease_both]">
       <div className="w-full max-w-[380px] relative z-10 text-center my-auto py-8">
-        <button type="button" onClick={() => router.back()} aria-label="Volver a la pantalla anterior" disabled={isLoading} className="absolute left-0 top-0 grid size-11 place-items-center rounded-full bg-[var(--bg3)] text-white focus-visible:ring-2 focus-visible:ring-[var(--yellow)]">
+        <Link href="/login" aria-label="Volver a iniciar sesión" className="absolute left-0 top-0 grid size-11 place-items-center rounded-full bg-[var(--bg3)] text-white focus-visible:ring-2 focus-visible:ring-[var(--yellow)]">
           <ArrowLeft className="size-5" aria-hidden="true" />
-        </button>
+        </Link>
         <div className="mx-auto size-14 rounded-2xl bg-[var(--bg3)] text-[var(--yellow)] grid place-items-center">
           <Flame className="size-8" strokeWidth={2.4} aria-hidden="true" />
         </div>
