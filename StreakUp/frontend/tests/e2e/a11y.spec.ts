@@ -93,6 +93,8 @@ const DASHBOARD_ROUTES = [
   { name: "Home", path: "/" },
   { name: "Habits", path: "/habits" },
   { name: "Stats", path: "/stats" },
+  { name: "Pomodoro", path: "/pomodoro" },
+  { name: "Social", path: "/social" },
   { name: "Profile", path: "/profile" },
 ];
 

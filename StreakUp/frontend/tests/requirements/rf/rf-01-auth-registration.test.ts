@@ -10,7 +10,7 @@ import { installBrowserTestEnv, restoreBrowserTestEnv } from "../test-utils";
 beforeEach(installBrowserTestEnv);
 afterEach(restoreBrowserTestEnv);
 
-test("RF-01 registration posts user credentials and returns the created user", async () => {
+test("RF-01 registration posts user credentials and opens a session", async () => {
   globalThis.fetch = async (input, init) => {
     assert.equal(input, "/api/auth/register");
     assert.equal(init?.method, "POST");
@@ -23,6 +23,8 @@ test("RF-01 registration posts user credentials and returns the created user", a
     return new Response(
       JSON.stringify({
         message: "User registered successfully.",
+        access_token: "access-test",
+        refresh_token: "refresh-test",
         user: {
           id: 7,
           username: "rf_user",
@@ -43,4 +45,6 @@ test("RF-01 registration posts user credentials and returns the created user", a
 
   assert.equal(result.user.email, "rf@example.com");
   assert.equal(result.user.username, "rf_user");
+  assert.equal(result.access_token, "access-test");
+  assert.equal(result.refresh_token, "refresh-test");
 });

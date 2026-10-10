@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import {
   Flame,
   TrendingUp,
@@ -274,7 +274,7 @@ export default function StatsPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [offlinePendingCount, setOfflinePendingCount] = useState(0);
 
-  async function fetchStats() {
+  const fetchStats = useCallback(async () => {
     try {
       const data = await fetchDetailedStats();
       setStats(data);
@@ -283,7 +283,7 @@ export default function StatsPage() {
         const history = await fetchHabitHistory({ limit: 20 });
         setHistoryEvents(history.items);
       } catch {
-        if (!stats) setHistoryEvents([]);
+        // Keep the last available history if its background refresh fails.
       }
     } catch (error) {
       // Keep the last successful result visible while reporting the refresh error.
@@ -298,7 +298,7 @@ export default function StatsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     void fetchStats();
@@ -307,7 +307,7 @@ export default function StatsPage() {
     };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
-  }, []);
+  }, [fetchStats]);
 
   if (loading) {
     return (

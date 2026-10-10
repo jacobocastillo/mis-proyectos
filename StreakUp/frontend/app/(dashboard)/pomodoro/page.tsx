@@ -406,8 +406,9 @@ function PomodoroContent() {
           <h3 className="text-[18px] font-bold text-center">Configuración</h3>
 
           <div className="space-y-[8px]">
-            <Label className="text-[13px] text-white/75 font-bold">Tiempo de estudio (minutos)</Label>
+            <Label htmlFor="pomodoro-study-minutes" className="text-[13px] text-white/75 font-bold">Tiempo de estudio (minutos)</Label>
             <Input
+              id="pomodoro-study-minutes"
               type="number"
               min={1}
               max={120}
@@ -426,8 +427,9 @@ function PomodoroContent() {
           </div>
 
           <div className="space-y-[8px]">
-            <Label className="text-[13px] text-white/75 font-bold">Tiempo de descanso (minutos)</Label>
+            <Label htmlFor="pomodoro-break-minutes" className="text-[13px] text-white/75 font-bold">Tiempo de descanso (minutos)</Label>
             <Input
+              id="pomodoro-break-minutes"
               type="number"
               min={1}
               max={60}
@@ -439,8 +441,9 @@ function PomodoroContent() {
           </div>
 
           <div className="space-y-[8px]">
-            <Label className="text-[13px] text-white/75 font-bold">Número de ciclos</Label>
+            <Label htmlFor="pomodoro-cycles" className="text-[13px] text-white/75 font-bold">Número de ciclos</Label>
             <Input
+              id="pomodoro-cycles"
               type="number"
               min={1}
               max={12}
@@ -453,8 +456,9 @@ function PomodoroContent() {
 
           {timeHabits.length > 0 && (
             <div className="space-y-[8px]">
-              <Label className="text-[13px] text-white/75 font-bold">Hábito vinculado (opcional)</Label>
+              <Label htmlFor="pomodoro-linked-habit" className="text-[13px] text-white/75 font-bold">Hábito vinculado (opcional)</Label>
               <select
+                id="pomodoro-linked-habit"
                 value={selectedHabitId ?? ""}
                 onChange={(e) => setSelectedHabitId(e.target.value ? Number(e.target.value) : null)}
                 disabled={timerState !== "idle"}

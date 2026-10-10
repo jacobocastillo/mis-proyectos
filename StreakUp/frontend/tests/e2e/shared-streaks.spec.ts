@@ -46,38 +46,42 @@ const MOCK_GROUPS = [
     id: 1,
     name: "Equipo Mañanero",
     invite_code: "ABC123",
-    active: true,
-    created_at: "2026-01-01T00:00:00Z",
-    updated_at: "2026-01-01T00:00:00Z",
+    owner_user_id: 1,
+    habit_id: 7,
+    habit_name: "Leer",
+    max_participants: 3,
     member_count: 3,
+    start_date: null,
+    duration_days: null,
+    end_date: null,
+    group_status: "active",
+    winner_user_id: null,
+    shared_streak: { current: 2, today_completed_members: 1, required_members: 3, ready: false },
+    created_at: "2026-01-01T00:00:00Z",
+    members: [
+      { user_id: 1, username: "testuser", status: "active", share_progress: true, joined_at: null, lost_at: null, today_completed: true, completed_days: 2 },
+      { user_id: 2, username: "amigo1", status: "active", share_progress: true, joined_at: null, lost_at: null, today_completed: false, completed_days: 1 },
+      { user_id: 3, username: "amigo2", status: "active", share_progress: false, joined_at: null, lost_at: null, today_completed: false, completed_days: 0 },
+    ],
   },
 ];
 
-const MOCK_GROUP_DETAIL = {
-  ...MOCK_GROUPS[0],
-  members: [
-    { user_id: 1, username: "testuser", status: "active", share_progress: true },
-    { user_id: 2, username: "amigo1", status: "active", share_progress: true },
-    { user_id: 3, username: "amigo2", status: "active", share_progress: false },
-  ],
-};
-
 async function mockSocialApi(page: import("@playwright/test").Page) {
-  await page.route("/api/social/groups", async (route) => {
+  await page.route("**/api/habits", (route) => route.fulfill({ json: [{ id: 7, name: "Leer" }] }));
+  await page.route("**/api/social/groups", async (route) => {
     if (route.request().method() === "GET") {
-      await route.fulfill({ json: { groups: MOCK_GROUPS } });
+      await route.fulfill({ json: MOCK_GROUPS });
     } else if (route.request().method() === "POST") {
       const body = route.request().postDataJSON() as { name?: string };
       await route.fulfill({
         status: 201,
         json: {
+          ...MOCK_GROUPS[0],
           id: 99,
           name: body?.name ?? "Nuevo Grupo",
           invite_code: "NEW999",
-          active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
           member_count: 1,
+          members: [MOCK_GROUPS[0].members[0]],
         },
       });
     } else {
@@ -85,12 +89,12 @@ async function mockSocialApi(page: import("@playwright/test").Page) {
     }
   });
 
-  await page.route("/api/social/groups/join", async (route) => {
-    await route.fulfill({ status: 200, json: { message: "Te uniste al grupo." } });
+  await page.route("**/api/social/groups/join", async (route) => {
+    await route.fulfill({ status: 200, json: { ...MOCK_GROUPS[0], id: 2, name: "Equipo Invitado" } });
   });
 
-  await page.route("/api/social/groups/1", async (route) => {
-    await route.fulfill({ json: MOCK_GROUP_DETAIL });
+  await page.route("**/api/social/groups/1", async (route) => {
+    await route.fulfill({ json: MOCK_GROUPS[0] });
   });
 }
 
@@ -112,18 +116,9 @@ test.describe("Social — create group", () => {
     await page.goto("/social");
     await page.waitForLoadState("networkidle");
 
-    const createBtn = page.getByRole("button", { name: /crear|nuevo grupo/i });
-    if (!(await createBtn.isVisible().catch(() => false))) {
-      test.skip();
-      return;
-    }
-
-    await createBtn.click();
-
-    const nameInput = page.getByLabel(/nombre/i).or(page.getByPlaceholder(/nombre/i));
-    await nameInput.fill("Grupo de Prueba");
-
-    await page.getByRole("button", { name: /crear|guardar|confirmar/i }).click();
+    await page.getByPlaceholder("Nombre del reto").fill("Grupo de Prueba");
+    await page.getByRole("combobox", { name: "Seleccionar hábito" }).selectOption("7");
+    await page.getByRole("button", { name: "Crear reto" }).click();
 
     await expect(page.getByText("Grupo de Prueba")).toBeVisible({ timeout: 5000 });
   });
@@ -136,22 +131,10 @@ test.describe("Social — join group", () => {
     await page.goto("/social");
     await page.waitForLoadState("networkidle");
 
-    const joinBtn = page.getByRole("button", { name: /unirse|ingresar/i });
-    if (!(await joinBtn.isVisible().catch(() => false))) {
-      test.skip();
-      return;
-    }
+    await page.getByPlaceholder("Código de invitación").fill("ABC123");
+    await page.getByRole("button", { name: "Unirme al grupo" }).click();
 
-    await joinBtn.click();
-
-    const codeInput = page.getByLabel(/código/i).or(page.getByPlaceholder(/código/i));
-    await codeInput.fill("ABC123");
-
-    await page.getByRole("button", { name: /unirse|confirmar/i }).click();
-
-    await expect(
-      page.getByText(/uniste|grupo|éxito/i)
-    ).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("Equipo Invitado")).toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -160,15 +143,6 @@ test.describe("Social — group detail members", () => {
     await injectSession(page);
     await mockSocialApi(page);
     await page.goto("/social");
-    await page.waitForLoadState("networkidle");
-
-    const groupLink = page.getByText("Equipo Mañanero");
-    if (!(await groupLink.isVisible().catch(() => false))) {
-      test.skip();
-      return;
-    }
-
-    await groupLink.click();
     await page.waitForLoadState("networkidle");
 
     await expect(page.getByText("amigo1")).toBeVisible({ timeout: 5000 });
